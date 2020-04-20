@@ -4,3 +4,4 @@
 
 /.vs
 /src/config.py
+/data/main.db

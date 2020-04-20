@@ -1,9 +1,7 @@
 import sqlite3
 from sqlite3 import Error
-
 import datetime
 from datetime import date
-
 import config
 
 # Some basic commands
