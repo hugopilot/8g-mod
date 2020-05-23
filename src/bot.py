@@ -18,6 +18,8 @@ from modules import log
 bot = commands.Bot(command_prefix=config.prefix)
 bot.remove_command('help')
 
+#region mod commands
+
 # This decorator adds the command to the command list
 @bot.command()
 @commands.has_any_role(elevatedperms.admin, elevatedperms.moderator)
@@ -37,6 +39,7 @@ async def ban(ctx, musr: typing.Union[discord.User, str] = None, *, reason: str 
         
 
 @bot.command()
+@commands.has_any_role(elevatedperms.admin, elevatedperms.moderator)
 async def kick(ctx, musr: typing.Union[discord.User, str] = None, *, reason: str = None):
     # Check if the musr object was properly parsed as a User object
     if(isinstance(musr, discord.User)):
@@ -50,6 +53,7 @@ async def kick(ctx, musr: typing.Union[discord.User, str] = None, *, reason: str
         log._log(bot, f"{musr} was kicked by {ctx.author} with reason: {reason}", True, f"User ID: {musr.id}", 0xFF0000)
 
 @bot.command()
+@commands.has_any_role(elevatedperms.admin, elevatedperms.moderator)
 async def mute(ctx, musr: typing.Union[discord.User, str] = None, duration:str = "30m", *, reason: str = None):
     # Check if the musr object was properly parsed as a User object
     if(isinstance(musr, discord.User)):
@@ -63,6 +67,7 @@ async def mute(ctx, musr: typing.Union[discord.User, str] = None, duration:str =
         log._log(bot, f"{musr} was muted by {ctx.author} with reason: {reason}", True, f"User ID: {musr.id}", 0xFF0000)
 
 @bot.command()
+@commands.has_any_role(elevatedperms.admin, elevatedperms.moderator)
 async def warn(ctx, musr: typing.Union[discord.User, str] = None, *, reason: str = None):
     # Check if reason is None
     if(reason == None):
@@ -78,12 +83,23 @@ async def warn(ctx, musr: typing.Union[discord.User, str] = None, *, reason: str
         log._log(bot, f"{musr} was warned by {ctx.author} with reason: {reason}", True, f"User ID: {musr.id}", 0xFFD500)
 
 @bot.command()
+@commands.has_any_role(elevatedperms.admin, elevatedperms.moderator)
 async def purge(ctx):
     # this is a built in command from the library
     await ctx.channel.purge(limit=amount)
 
+    # Log it
+    log._log(bot, f"{ctx.user} used purge command in {ctx.channel.name}", True, f"User ID: {ctx.author.id}", 0x00E8FF)
+
+#endregion
+
+#region info commands
 @bot.command()
 async def whois(ctx, musr: typing.Union[discord.User, str] = None):
     pass
+
+@bot.command()
+async def version(ctx):
+    await ctx.send(f"Running version: _v{config.version}_")
 
 bot.run(config.token)
