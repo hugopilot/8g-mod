@@ -1,5 +1,5 @@
 # General info
-token = "insert token here"
+token = "NjE1MTEyNDcwMDMzNTk2NDE2.XskqAw.GhVMpkc49N4fk5_gGmQT_toNXgQ"
 version = "0.1.0"
 prefix = '??'
 
@@ -9,5 +9,15 @@ logloc = '../data/logs/main.log'
 
 # Server bindings
 # All ID's should be int! 
-guild = 'insert id here'
-logch = 'insert id here'
+
+# Deploy
+#guild = 535307621943607306
+#logch = 558124521249439745
+
+# Test
+guild = 477466689362198547
+logch = 713750286094827560
+
+# Server roles
+mutedrole = 713870661554143273
+nfswrestrictedrole = 713870910955716668

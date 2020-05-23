@@ -1,8 +1,7 @@
 # System lib imports
 import sqlite3
 from sqlite3 import Error
-import datetime
-from datetime import date
+import time
 import uuid
 
 # Source imports
@@ -38,6 +37,7 @@ def AddInfraction(userID:int, measuretype:measure.Measure, reason:str, author:in
     """
     # Create a new GUID
     guid = str(uuid.uuid4())
+
     # Connect to database
     c = connect()
     cu = c.cursor();
@@ -46,7 +46,7 @@ def AddInfraction(userID:int, measuretype:measure.Measure, reason:str, author:in
     usre = _sql_escape_string(reason)
 
     # Format the SQL Query by putting the arguments into the query
-    q = f"INSERT INTO infractions (guid, userID, measure, reason, authorID) VALUES({guid}, {userID}, {str(measuretype)}, {usre}, {author}"
+    q = f"INSERT INTO infractions (guid, userID, measure, reason, authorID, epoch) VALUES('{guid}', {userID}, {int(measuretype)}, '{usre}', {author}, {int(time.time())});"
 
     # Execute the SQL Query
     cu.execute(q)
@@ -55,6 +55,19 @@ def AddInfraction(userID:int, measuretype:measure.Measure, reason:str, author:in
     # Disconnect from database
     close_con(c)
 
+def GetAllInfractions(userID:int):
+    """Gets all infractions from a user from the database
+        
+        Parameters:
+        userID = Discord ID of the user
+    """
 
+    # Connect to database
+    c = connect()
+    cu = c.cursor();
 
-
+    # Format SQL query
+    q = f"SELECT * FROM infractions WHERE userID = {userID}"
+    cu.execute(q)
+    r = cu.fetchall()
+    return r
