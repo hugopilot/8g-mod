@@ -11,6 +11,6 @@ CREATE TABLE "infractions" (
 	"measure"	INTEGER NOT NULL,
 	"reason"	TEXT,
 	"authorID"	INTEGER NOT NULL,
-	PRIMARY KEY("snowflake")
+	PRIMARY KEY("guid")
 );
 
