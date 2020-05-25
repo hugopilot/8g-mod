@@ -18,16 +18,10 @@ async def _log(bot, message, to_channel:bool = False, footertxt=None, color=0xFF
     # Message being formatted to '[date] message' format 
     m = '[{}] {}'.format(datetime.datetime.now(), message)
     
-    if(error):
-        # Log entry written to file by opening the file, writing to it and then closing it
-        with open(config.errloc, 'a', encoding='utf-8') as log_f:
-            log_f.write('{}\n'.format(m))
-            log_f.close()
-    else:
-        # Log entry written to file by opening the file, writing to it and then closing it
-        with open(config.logloc, 'a', encoding='utf-8') as log_f:
-            log_f.write('{}\n'.format(m))
-            log_f.close()
+    # Log entry written to file by opening the file, writing to it and then closing it
+    with open(config.logloc, 'a', encoding='utf-8') as log_f:
+        log_f.write('{}\n'.format(m))
+        log_f.close()
 
     # print log entry to console
     print(m)
