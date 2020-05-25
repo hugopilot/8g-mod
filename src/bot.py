@@ -377,6 +377,9 @@ async def on_command_error(context, exception):
 
     await context.send("Ohoh, something went wrong. Error has been logged")
 
+@bot.command()
+async def help(ctx):
+    await ctx.send("Source can be found here: https://github.com/hugopilot/pluto-mod")
 
 @bot.command()
 async def shutdown(ctx):
