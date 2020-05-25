@@ -40,7 +40,25 @@ def _sql_user_exists(userID:int):
         return True
     return False
 
-    
+def _sql_get_muted():
+    # Connect to database
+    c = connect()
+    cu = c.cursor();
+
+    # Format SQL query
+    q = f"SELECT * FROM users WHERE muted = 1"
+    cu.execute(q)
+    r = cu.fetchall()
+    close_con(c)
+    if(len(r) > 0):
+        return r
+    return False    
+
+def CheckMuted(userID:int):
+    res = _sql_get_muted()
+    if(any(str(userID) in str(case[0]) for case in res)):
+        return True
+    return False
 
 
 def AddInfraction(userID:int, measuretype:measure.Measure, reason:str, author:int):
@@ -118,3 +136,16 @@ def SetMuteMember(userID:int, mutelift:int):
         cu.execute(q)
         c.commit()
         close_con(c)
+
+def RemoveMuteMember(userID:int):
+    # Connect to database
+    c = connect()
+    cu = c.cursor();
+
+    # Format the SQL Query by putting the arguments into the query
+    q = f"UPDATE users SET muted = 0, mutelift = NULL WHERE id = {userID}"
+
+    # Execute the SQL Query
+    cu.execute(q)
+    c.commit()
+    close_con(c)

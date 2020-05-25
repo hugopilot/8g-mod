@@ -16,7 +16,7 @@ async def _log(bot, message, to_channel:bool = False, footertxt=None, color=0xFF
 
     
     # Message being formatted to '[date] message' format 
-    m = '[{}] {}'.format(datetime.datetime.now(), message)
+    m = '`[{}]`\n **{}**'.format(datetime.datetime.now(), message)
     
     # Log entry written to file by opening the file, writing to it and then closing it
     with open(config.logloc, 'a', encoding='utf-8') as log_f:
