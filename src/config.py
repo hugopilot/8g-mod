@@ -1,5 +1,5 @@
 # General info
-token = "NjE1MTEyNDcwMDMzNTk2NDE2.XskqAw.GhVMpkc49N4fk5_gGmQT_toNXgQ"
+token = "die"
 version = "0.1.0"
 prefix = '??'
 
