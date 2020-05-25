@@ -108,6 +108,30 @@ def GetAllInfractions(userID:int):
     close_con(c)
     return r
 
+def GetInfraction(id:str):
+    """Finds a infraction by ID
+    
+        Parameters:
+        id = (Part of) GUID of the infraction
+
+        Returns:
+        InfractionTuple
+    """
+
+    # Connect to database
+    c = connect()
+    cu = c.cursor();
+
+    # Don't trust
+    ids = _sql_escape_string(id)
+
+    # Format SQL query
+    q = f"SELECT * FROM infractions WHERE guid LIKE '%{ids}%'"
+    cu.execute(q)
+    r = cu.fetchall()
+    close_con(c)
+    return r
+
 def SetMuteMember(userID:int, mutelift:int):
     # Create new entry if user doesn't exist in db yet
     if(not _sql_user_exists(userID)):

@@ -2,6 +2,7 @@
 import discord
 from discord.ext import commands
 from discord.ext.commands import has_permissions, MissingPermissions
+import time
 
 # System libraies imports
 import typing
@@ -265,6 +266,38 @@ async def on_member_ban(guild, user):
 
     await log._log(bot, f"{user.mention} was banned with reason: {reason}", True, f"User ID: {user.id}", 0xFF0000)
     
+@bot.command()
+async def infraction(ctx, id:str):
+    
+
+    res = db.GetInfraction(id)
+
+    if(len(res) < 1):
+        await ctx.send("🚫 Didn't find any infractions")
+        return
+
+    embed=discord.Embed(title="WHOIS", description=f"Found {len(res)} results. Showing first", color=0x469eff)
+    embed.set_author(name="Pluto's Shitty Mod Bot")
+    for case in res:
+        
+        embed.add_field(name="GUID", value=f"{case[0]}", inline=True)
+        u = bot.get_user(int(case[1]))
+        if(u == None):
+            embed.add_field(name="User", value=f"{case[1]}", inline=True)
+        else:
+            embed.add_field(name="User", value=f"{u.mention}", inline=True)
+        embed.add_field(name="Type", value=f"{str(Measure(case[2]))}", inline=True)
+        embed.add_field(name="Reason", value=f"{case[3]}", inline=True)
+        a = bot.get_user(int(case[4]))
+        if(a == None):
+            embed.add_field(name="Recorded by", value=f"{case[4]}", inline=True)
+        else:
+            embed.add_field(name="Recorded by", value=f"{a.mention}", inline=True)
+        embed.add_field(name="Timestamp", value=f"{time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(int(case[5])))}", inline=True)
+
+        await ctx.send(embed=embed)
+        del embed
+
 # This event is risen when a member joins the server
 @bot.event
 async def on_member_join(member):
@@ -274,5 +307,25 @@ async def on_member_join(member):
 @bot.event
 async def on_member_remove(member):
     await log._log(bot, f"Member {member.mention} left", True, f"User ID: {member.id}", 0x00FF00)
+
+@bot.event
+async def on_message_delete(message):
+    # Ignore bots
+    if(message.author.bot):
+        return
+    await log._log(bot, "{} deleted message with content: _{}_".format(message.author, message.content), "Message ID: {}; Created at: {}".format(message.id, message.created_at))
+
+@bot.event
+async def on_message_edit(before, after):
+    # Ignore bots
+    if(before.author.bot):
+        return
+    await log._log(bot, """{} edited message:
+    
+    **Before**:
+    {}
+    
+    **After**:
+    {}""".format(after.author, before.content, after.content), "Message ID: {}; Created at: {}; Edited at: {}".format(after.id, before.created_at, after.edited_at))
 
 bot.run(config.token)
