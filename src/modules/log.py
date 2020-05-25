@@ -3,7 +3,7 @@ import config
 import datetime
 from datetime import date
 
-async def _log(bot, message, to_channel:bool = False, footertxt=None, color=0xFFFFFF, error = False):
+async def _log(bot, message, to_channel:bool = False, footertxt=None, color=0xFFFFFF):
     """This function is used to log events from the bot in the console, a logfile and log channel
     
     Parameters:
@@ -52,7 +52,7 @@ async def _log(bot, message, to_channel:bool = False, footertxt=None, color=0xFF
         del embed
         del ch
 
-def errlog(message):
+def _errlog(message):
     # Message being formatted to '[date] message' format 
     m = '[{}] {}'.format(datetime.datetime.now(), message)
 

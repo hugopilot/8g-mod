@@ -52,10 +52,13 @@ def _sql_get_muted():
     close_con(c)
     if(len(r) > 0):
         return r
-    return False    
+    return False  
 
 def CheckMuted(userID:int):
     res = _sql_get_muted()
+    if(res == False):
+        return False
+
     if(any(str(userID) in str(case[0]) for case in res)):
         return True
     return False

@@ -3,6 +3,7 @@ import discord
 from discord.ext import commands
 from discord.ext.commands import has_permissions, MissingPermissions
 import time
+import traceback
 
 # System libraies imports
 import typing
@@ -96,6 +97,10 @@ async def ban(ctx, musr: typing.Union[discord.User, str] = None, *, reason: str 
         # Put it in the database
         db.AddInfraction(musr.id, Measure.BAN, reason, ctx.author.id)
 
+        # ignore if self
+        if(ctx.author == musr):
+            return
+
         await musr.send(f"You were banned from {ctx.guild} • {reason}")
 
         # Add it to the recentrmv list
@@ -119,6 +124,10 @@ async def kick(ctx, musr: typing.Union[discord.User, str] = None, *, reason: str
         # Put it in the database
         db.AddInfraction(musr.id, Measure.KICK, reason, ctx.author.id)
 
+        # ignore if self
+        if(ctx.author == musr):
+            return
+
         # Add it to the recentrmv list
         global recentrmv
         recentrmv.append(musr.id)
@@ -139,6 +148,9 @@ async def kick(ctx, musr: typing.Union[discord.User, str] = None, *, reason: str
 async def mute(ctx, musr: typing.Union[discord.Member, str] = None, duration:str = "30m", *, reason: str = "No reason supplied"):
     # Check if the musr object was properly parsed as a User object
     if(isinstance(musr, discord.Member)):
+        # ignore if self
+        if(ctx.author == musr):
+            return
 
         # Put it in the database
         db.AddInfraction(musr.id, Measure.MUTE, reason, ctx.author.id)
@@ -174,6 +186,9 @@ async def mute(ctx, musr: typing.Union[discord.Member, str] = None, duration:str
 async def unmute(ctx, musr: typing.Union[discord.Member, str]):
     # Check if the musr object was properly parsed as a User object
     if(isinstance(musr, discord.Member)):
+        # ignore if self
+        if(ctx.author == musr):
+            return
         # Check if muted
         if(not db.CheckMuted(musr.id)):
             await ctx.send("🚫 {musr} is already unmuted!")
@@ -196,6 +211,10 @@ async def warn(ctx, musr: typing.Union[discord.User, str] = None, *, reason: str
 
     # Check if the musr object was properly parsed as a User object
     if(isinstance(musr, discord.User)):
+        # ignore if self
+        if(ctx.author == musr):
+            return
+
         # Put it in the database
         db.AddInfraction(musr.id, Measure.WARN, reason, ctx.author.id)
 
