@@ -1,7 +1,7 @@
 CREATE TABLE "users" (
 	"id"	INTEGER NOT NULL UNIQUE,
 	"muted"	INTEGER DEFAULT 0,
-	"mutelift" TEXT,
+	"mutelift" INTEGER,
 	PRIMARY KEY("id")
 ) WITHOUT ROWID;
 

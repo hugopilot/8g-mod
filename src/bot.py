@@ -11,6 +11,7 @@ import config
 from models import elevatedperms
 from models import measure
 from models.measure import Measure
+from models import errors
 from modules import db
 from modules import log
 from modules import markdown
@@ -110,20 +111,38 @@ async def kick(ctx, musr: typing.Union[discord.User, str] = None, *, reason: str
 
 @bot.command()
 @commands.has_any_role(*elevatedperms.elevated)
-async def mute(ctx, musr: typing.Union[discord.User, str] = None, duration:str = "30m", *, reason: str = None):
+async def mute(ctx, musr: typing.Union[discord.Member, str] = None, duration:str = "30m", *, reason: str = "No reason supplied"):
     # Check if the musr object was properly parsed as a User object
-    if(isinstance(musr, discord.User)):
+    if(isinstance(musr, discord.Member)):
+
         # Put it in the database
         db.AddInfraction(musr.id, Measure.MUTE, reason, ctx.author.id)
 
-        # Use the hammer: ban the user
-        #ctx.guild.ban(musr, reason)
+        # Try to get the role
+        mr = ctx.guild.get_role(config.mutedrole)
+
+        # Bot couldn't find the correct role
+        if(mr == None):
+            raise errors.RoleNotFoundError("Muted role not found!", "Update ID in config file")
+            return
+
+        try:
+            ti = markdown.add_time_from_str(duration)
+            db.SetMuteMember(musr.id, ti)
+        except TypeError:
+            await ctx.send("Wrong formatting used!")
+            return
+
+        # Assign the muted role
+        await musr.add_roles(mr)
+
+        await musr.send(f"You were muted in {ctx.guild} for {markdown.duration_to_text(duration)} • {reason}")
 
         # Log it
         await log._log(bot, f"{musr} was muted by {ctx.author} with reason: {reason}", True, f"User ID: {musr.id}", 0xFF0000)
 
         # Send feedback
-        await ctx.send(f"{musr} was muted | {reason}")
+        await ctx.send(f"{musr} was muted for {markdown.duration_to_text(duration)} | {reason}")
 
 @bot.command()
 @commands.has_any_role(*elevatedperms.elevated)
@@ -158,11 +177,13 @@ async def purge(ctx):
 #region info commands
 @bot.command()
 async def whois(ctx, musr: typing.Union[discord.Member, str] = None):
+
+    # Embed
     embed=discord.Embed(title="WHOIS", description="", color=0x469eff)
     embed.set_author(name="Pluto's Shitty Mod Bot")
     embed.set_thumbnail(url=f"{str(musr.avatar_url)}")
     embed.add_field(name="Username", value=f"{musr}", inline=True)
-    embed.add_field(name="Registered", value=f"{str(musr.created_at)}", inline = True)
+    embed.add_field(name="Registered", value=f"{str(musr.created_at)}", inline=True)
     if(not inDM(ctx)):
         embed.add_field(name="Nickname", value=f"{musr.nick}", inline=True)
         embed.add_field(name="Joined", value=f"{str(musr.joined_at)}", inline=True)
@@ -184,6 +205,7 @@ async def whois(ctx, musr: typing.Union[discord.Member, str] = None):
 async def version(ctx):
     await ctx.send(f"Running version: _v{config.version}_")
 
+#endregion
 
 # This event is risen when a user was banned from the server
 @bot.event
@@ -202,10 +224,12 @@ async def on_member_ban(guild, user):
 
     await log._log(bot, f"{user} was banned with reason: {reason}", True, f"User ID: {user.id}", 0xFF0000)
     
+# This event is risen when a member joins the server
 @bot.event
 async def on_member_join(member):
     await log._log(bot, f"{member} joined the server!", True, f"User ID: {member.id}", 0x00FF00)
 
+# This event is risen when a member left the server (this can be the cause of kicking too!)
 @bot.event
 async def on_member_remove(member):
     await log._log(bot, f"Member {member} left", True, f"User ID: {member.id}", 0x00FF00)

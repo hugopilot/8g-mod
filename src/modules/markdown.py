@@ -95,3 +95,7 @@ def add_time_from_str(string:str = "", btime:int = -1, subtract = False):
         raise TypeError("Incorrect formatting used!")
         return -1
         
+def duration_to_text(string:str):
+    t = string
+    t = t.replace('s', "s ").replace('m', "min ").replace('h', "h ").replace('d', " days ")
+    return t
