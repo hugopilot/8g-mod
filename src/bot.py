@@ -55,7 +55,7 @@ class prupd(commands.Cog):
                         await log._log(self.bot, "Cannot lift mute, member probably left", True, f"User ID: {case}", 0xFFC000)
                     else:
                         await u.remove_roles(mutedr, reason ='Automatically lifted (timeout) by bot')
-                        await log._log(self.bot, f"Mute on {u.mention} lifted (timeout).", True, f"User ID: {case}", 0x00FF00)
+                        await log._log(self.bot, f"Mute on {u} lifted (timeout).", True, f"User ID: {case}", 0x00FF00)
                 # unmute errors
                 for case in mres[1]:
                     db.RemoveMuteMember(case)
@@ -64,7 +64,7 @@ class prupd(commands.Cog):
                         await log._log(self.bot, "Cannot lift mute, member probably left", True, f"User ID: {case}", 0xFFC000)
                     else:
                         u.remove_roles(mutedr, reason ='Automatically lifted (NULL ERROR) by bot')
-                        await log._log(self.bot, f"Mute on {u.mention} lifted (NULL ERROR).", True, f"User ID: {case}", 0xFFC000)
+                        await log._log(self.bot, f"Mute on {u} lifted (NULL ERROR).", True, f"User ID: {case}", 0xFFC000)
 
             except Exception:
                 pass
@@ -106,7 +106,7 @@ async def ban(ctx, musr: typing.Union[discord.User, str] = None, *, reason: str 
         await ctx.guild.ban(musr, reason=reason)
 
         # Log it
-        await log._log(bot, f"{musr.mention} was banned by {ctx.author.mention} with reason: {reason}", True, f"User ID: {musr.id}", 0xFF0000)
+        await log._log(bot, f"{musr} was banned by {ctx.author} with reason: {reason}", True, f"User ID: {musr.id}", 0xFF0000)
         
         # Send feedback
         await ctx.send(f"✅ Banned {musr} | {reason}")
@@ -129,7 +129,7 @@ async def kick(ctx, musr: typing.Union[discord.User, str] = None, *, reason: str
         await ctx.guild.kick(musr, reason)
 
         # Log it
-        await log._log(bot, f"{musr.mention} was kicked by {ctx.author.mention} with reason: {reason}", True, f"User ID: {musr.id}", 0xFF0000)
+        await log._log(bot, f"{musr} was kicked by {ctx.author} with reason: {reason}", True, f"User ID: {musr.id}", 0xFF0000)
 
         # Send feedback
         await ctx.send(f"✅ {musr} was kicked | {reason}")
@@ -164,7 +164,7 @@ async def mute(ctx, musr: typing.Union[discord.Member, str] = None, duration:str
         await musr.send(f"You were muted in {ctx.guild} for {markdown.duration_to_text(duration)} • {reason}")
 
         # Log it
-        await log._log(bot, f"{musr.mention} was muted by {ctx.author.mention} with reason: {reason}", True, f"User ID: {musr.id}", 0xFF0000)
+        await log._log(bot, f"{musr} was muted by {ctx.author} with reason: {reason}", True, f"User ID: {musr.id}", 0xFF0000)
 
         # Send feedback
         await ctx.send(f"✅ {musr} was muted for {markdown.duration_to_text(duration)} | {reason}")
@@ -176,14 +176,14 @@ async def unmute(ctx, musr: typing.Union[discord.Member, str]):
     if(isinstance(musr, discord.Member)):
         # Check if muted
         if(not db.CheckMuted(musr.id)):
-            await ctx.send("🚫 {musr.mention} is already unmuted!")
+            await ctx.send("🚫 {musr} is already unmuted!")
 
         mutedr = ctx.guild.get_role(config.mutedrole)
 
         db.RemoveMuteMember(musr.id)
         await musr.remove_roles(mutedr, reason =f'Lifted by {ctx.author}')
-        await log._log(bot, f"Mute on {musr.mention} lifted by {ctx.author}.", True, f"User ID: {musr.id}", 0x00FF00)
-        await ctx.send(f"✅ {musr.mention} was unmuted!")
+        await log._log(bot, f"Mute on {musr} lifted by {ctx.author}.", True, f"User ID: {musr.id}", 0x00FF00)
+        await ctx.send(f"✅ {musr} was unmuted!")
 
 
 @bot.command()
@@ -200,7 +200,7 @@ async def warn(ctx, musr: typing.Union[discord.User, str] = None, *, reason: str
         db.AddInfraction(musr.id, Measure.WARN, reason, ctx.author.id)
 
         # Log it
-        await log._log(bot, f"{musr.mention} was warned by {ctx.author.mention} with reason: {reason}", True, f"User ID: {musr.id}", 0xFFD500)
+        await log._log(bot, f"{musr} was warned by {ctx.author} with reason: {reason}", True, f"User ID: {musr.id}", 0xFFD500)
 
         # Send feedback
         await ctx.send(f"✅ {musr} was warned | {reason}")
@@ -212,7 +212,7 @@ async def purge(ctx):
     await ctx.channel.purge(limit=amount)
 
     # Log it
-    log._log(bot, f"{ctx.author.mention} used purge command in {ctx.channel.name}", True, f"User ID: {ctx.author.id}", 0x00E8FF)
+    log._log(bot, f"{ctx.author} used purge command in {ctx.channel.name}", True, f"User ID: {ctx.author.id}", 0x00E8FF)
 
 #endregion
 
@@ -264,7 +264,7 @@ async def on_member_ban(guild, user):
     # Put it in the database
     db.AddInfraction(user.id, Measure.BAN, reason, 0)
 
-    await log._log(bot, f"{user.mention} was banned with reason: {reason}", True, f"User ID: {user.id}", 0xFF0000)
+    await log._log(bot, f"{user} was banned with reason: {reason}", True, f"User ID: {user.id}", 0xFF0000)
     
 @bot.command()
 async def infraction(ctx, id:str):
@@ -301,12 +301,24 @@ async def infraction(ctx, id:str):
 # This event is risen when a member joins the server
 @bot.event
 async def on_member_join(member):
-    await log._log(bot, f"{member.mention} joined the server!", True, f"User ID: {member.id}", 0x00FF00)
+    await log._log(bot, f"{member} joined the server!", True, f"User ID: {member.id}", 0x00FF00)
+    if(db.CheckMuted(member.id)):
+        # Try to get the role
+        mr = member.guild.get_role(config.mutedrole)
+
+        # Bot couldn't find the correct role
+        if(mr == None):
+            raise errors.RoleNotFoundError("Muted role not found!", "Update ID in config file")
+            return
+
+        # Assign the muted role
+        await member.add_roles(mr, reason="Auto-reassigned by Pluto's Shitty Mod Bot")
+        await log._log(bot, f"Found mute on {member}, reassigned role!", True, f"User ID: {member.id}", 0xFF0000)
 
 # This event is risen when a member left the server (this can be the cause of kicking too!)
 @bot.event
 async def on_member_remove(member):
-    await log._log(bot, f"Member {member.mention} left", True, f"User ID: {member.id}", 0x00FF00)
+    await log._log(bot, f"Member {member} left", True, f"User ID: {member.id}", 0x00FF00)
 
 @bot.event
 async def on_message_delete(message):
@@ -327,5 +339,50 @@ async def on_message_edit(before, after):
     
     **After**:
     {}""".format(after.author, before.content, after.content), "Message ID: {}; Created at: {}; Edited at: {}".format(after.id, before.created_at, after.edited_at))
+
+
+@bot.event
+async def on_command_error(context, exception):
+    # Skip 'command not found errors'
+    if(isinstance(exception, commands.errors.CommandNotFound) or isinstance(exception, commands.errors.BadArgument)):
+        return
+    # Handling Forbidden and NotFound errors
+    if(isinstance(exception.original, discord.errors.Forbidden)):
+        # Try to send 
+        try:
+            await context.send("[DISCORD ERROR] HTTP 403")
+        except:
+            if(isinstance(exception.original, discord.errors.Forbidden)):
+                await context.author.send("[DISCORD ERROR] HTTP 403; Ask your admin to fix permissions!")
+        return
+    if(isinstance(exception.original, discord.errors.NotFound)):
+        await context.send("[DISCORD ERROR] HTTP 404")
+        return
+    # General HTTP failures
+    if(isinstance(exception.original, discord.errors.HTTPException)):
+        await context.send("[DISCORD ERROR] General HTTP error (not 200)")
+        return
+    if(isinstance(exception.original, discord.ext.commands.UnexpectedQuoteError)):
+        await context.send("_Unexpected closing of the string. Error has been logged_")
+
+    ex = traceback.format_exception(type(exception), exception, exception.__traceback__)
+    m = """[ERR] """
+    for line in ex:
+        m = """{}{}""".format(m, line)
+    if(context.guild == None):  
+        m = f"{m}\nIN DM, thanks to {context.author} ({context.author.id})\n\n"
+    else:
+        m = f"{m}\nIn {context.guild} ({context.guild.id}), thanks to {context.author} ({context.author.id})\n\n".format(m, context.guild, context.guild.id, context.author, context.author.id)
+    log._errlog(m)
+
+    await context.send("Ohoh, something went wrong. Error has been logged")
+
+
+@bot.command()
+async def shutdown(ctx):
+    if(any(ctx.author.id == user for user in config.owners)):
+        log._log(f"(SYS) SHUTDOWN COMMAND RECIEVED BY {ctx.author}")
+        await ctx.send("✅ Shutting down")
+        await bot.logout()
 
 bot.run(config.token)
