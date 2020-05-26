@@ -21,7 +21,7 @@ Let's focus on bullet point nr.4: 'Code runs in a sequence'. Code runs from up t
 # Defines a variable called msg with the value 'Hi!'
 msg = "Hi!"
 
-# Chceks if 'Hi' appears in msg
+# Checks if 'Hi' appears in msg
 if('Hi' in msg):
   # This prints 'yey' to the console
   print("yey")
