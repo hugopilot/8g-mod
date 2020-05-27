@@ -226,7 +226,7 @@ async def warn(ctx, musr: typing.Union[discord.User, str] = None, *, reason: str
 
 @bot.command()
 @commands.has_any_role(*elevatedperms.elevated)
-async def purge(ctx):
+async def purge(ctx, amount:int = 50):
     # this is a built in command from the library
     await ctx.channel.purge(limit=amount)
 
