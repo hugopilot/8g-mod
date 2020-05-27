@@ -231,7 +231,7 @@ async def purge(ctx, amount:int = 50):
     await ctx.channel.purge(limit=amount)
 
     # Log it
-    log._log(bot, f"{ctx.author} used purge command in {ctx.channel.name}", True, f"User ID: {ctx.author.id}", 0x00E8FF)
+    await log._log(bot, f"{ctx.author} used purge command in {ctx.channel.name}", True, f"User ID: {ctx.author.id}", 0x00E8FF)
 
 #endregion
 
