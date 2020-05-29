@@ -333,6 +333,18 @@ async def on_member_join(member):
         # Assign the muted role
         await member.add_roles(mr, reason="Auto-reassigned by Pluto's Shitty Mod Bot")
         await log._log(bot, f"Found mute on {member}, reassigned role!", True, f"User ID: {member.id}", 0xFF0000)
+    
+    # Assign roles defined in config.autoroles
+    for r in config.autoroles:
+        # Bot couldn't find the correct role
+        if(mr == None):
+            raise errors.RoleNotFoundError("Muted role not found!", "Update ID in config file")
+            return
+
+        rq = member.guild.get_role(r)
+        await member.add_roles(mr, reason="Auto-assigned by Pluto's Shitty Mod Bot")
+        await log._log(bot, f"Auto assigned `{rq}` to {member}", True, f"User ID: {member.id}", 0x00C8FF)
+
 
 # This event is risen when a member left the server (this can be the cause of kicking too!)
 @bot.event
@@ -350,6 +362,8 @@ async def on_message_delete(message):
 async def on_message_edit(before, after):
     # Ignore bots
     if(before.author.bot):
+        return
+    if(before.content == after.content):
         return
     await log._log(bot, """{} edited message:
     
