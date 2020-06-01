@@ -48,7 +48,7 @@ async def _log(bot, message, *, to_channel:bool = False, footertxt=None, color=0
 
 def _errlog(message):
     # Message being formatted to '[date] message' format 
-    m = '[{}] {}'.format(datetime.datetime.now(), message)
+    m = '[{}] {}'.format(datetime.datetime.utcnow(), message)
 
     # Print to console
     print(m)
