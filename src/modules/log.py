@@ -3,7 +3,7 @@ import config
 import datetime
 from datetime import date
 
-async def _log(bot, message, to_channel:bool = False, footertxt=None, color=0xFFFFFF):
+async def _log(bot, message, *, to_channel:bool = False, footertxt=None, color=0xFFFFFF):
     """This function is used to log events from the bot in the console, a logfile and log channel
     
     Parameters:
@@ -16,7 +16,7 @@ async def _log(bot, message, to_channel:bool = False, footertxt=None, color=0xFF
 
     
     # Message being formatted to '[date] message' format 
-    m = '[{}] {}'.format(datetime.datetime.now(), message)
+    m = '[{}] {}'.format(datetime.datetime.utcnow(), message)
     
     # Log entry written to file by opening the file, writing to it and then closing it
     with open(config.logloc, 'a', encoding='utf-8') as log_f:
@@ -27,13 +27,13 @@ async def _log(bot, message, to_channel:bool = False, footertxt=None, color=0xFF
     print(m)
 
     # Message being prepared for log
-    m = '`[{}]`\n **{}**'.format(datetime.datetime.now(), message)
+    m = f'**{message}**'
     if(to_channel):
         # Get the right channel to post the log entry in
         ch = bot.get_guild(config.guild).get_channel(config.logch)
 
         # Generate the embed
-        embed=discord.Embed(title="Log", description=m, color=color)
+        embed=discord.Embed(title="Log", description=m, color=color, timestamp=datetime.datetime.utcnow())
 
         # Set footertext if not None
         if(footertxt != None):
