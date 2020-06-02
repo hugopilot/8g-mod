@@ -31,7 +31,7 @@ bot.remove_command('help')
 recentrmv = []
 
 # This cog runs every minute. Unmuting members, updating recentban, etc
-class prupd(commands.Cog):
+class minuteupdate(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot 
@@ -73,7 +73,7 @@ class prupd(commands.Cog):
             await asyncio.sleep(60)
 
 
-bot.add_cog(prupd(bot))
+bot.add_cog(minuteupdate(bot))
 
 # Global functions
 def inDM(ctx):
@@ -136,7 +136,7 @@ async def kick(ctx, musr: typing.Union[discord.User, str] = None, *, reason: str
         await musr.send(f"You were kicked from {ctx.guild} • {reason}")
 
         # Use the hammer: Kick the user
-        await ctx.guild.kick(musr, reason)
+        await ctx.guild.kick(musr, reason=reason)
 
         # Log it
         await log._log(bot, f"{musr} was kicked by {ctx.author} with reason: {reason}",to_channel=True,footertxt=f"User ID: {musr.id}", color=COLOR.ATTENTION_BAD.value)
@@ -372,6 +372,7 @@ async def on_message_edit(before, after):
     **After**:
     {after.content}""", to_channel=True, footertxt=f"Message ID: {after.id}; Created at: {before.created_at}", color=COLOR.INFO.value)
 
+# this is used for spam prevention
 
 @bot.event
 async def on_command_error(context, exception):
