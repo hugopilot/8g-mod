@@ -1,8 +1,13 @@
 import enum
 from enum import Enum
 
-class Measure(IntEnum):
-    MEASURES = 0xFF0000
-    DEVELOPER = 0xFFC000
-    INFO = 0x0060FF
+class COLOR(Enum):
+    ATTENTION_BAD = 0xFF0000
+    ATTENTION_OK = 0x00FF00
+    ATTENTION_INFO = 0x00C8FF
+    ATTENTION_WARN = 0xFFC800
+    BAD = 0xB00B1E
+    OK = 0x00C800
+    INFO = 0x00B1CC
+    WARN = 0xD3A700
 
