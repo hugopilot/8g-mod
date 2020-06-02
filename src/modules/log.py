@@ -27,7 +27,7 @@ async def _log(bot, message, *, to_channel:bool = False, footertxt=None, color=0
     print(m)
 
     # Message being prepared for log
-    m = f'**{message}**'
+    m = f'{message}'
     if(to_channel):
         # Get the right channel to post the log entry in
         ch = bot.get_guild(config.guild).get_channel(config.logch)

@@ -328,20 +328,19 @@ async def on_member_join(member):
         # Bot couldn't find the correct role
         if(mr == None):
             raise errors.RoleNotFoundError("Muted role not found!", "Update ID in config file")
-            return
-
-        # Assign the muted role
-        await member.add_roles(mr, reason="Auto-reassigned by Pluto's Shitty Mod Bot")
-        await log._log(bot, f"Found mute on {member}, reassigned role!", to_channel=True, footertxt=f"User ID: {member.id}", color=0xFF0000)
+        else:
+            # Assign the muted role
+            await member.add_roles(mr, reason="Auto-reassigned by Pluto's Shitty Mod Bot")
+            await log._log(bot, f"Found mute on {member}, reassigned role!", to_channel=True, footertxt=f"User ID: {member.id}", color=0xFF0000)
     
     # Assign roles defined in config.autoroles
     for r in config.autoroles:
         # Bot couldn't find the correct role
-        if(mr == None): 
-            raise errors.RoleNotFoundError("{r} could not be found!", "Update ID in config file")
-
         rq = member.guild.get_role(r)
-        await member.add_roles(mr, reason="Auto-assigned by Pluto's Shitty Mod Bot")
+        if(rq == None): 
+            raise errors.RoleNotFoundError("{r} could not be found!", "Update ID in config file")
+            continue
+        await member.add_roles(rq, reason="Auto-assigned by Pluto's Shitty Mod Bot")
         await log._log(bot, f"Auto assigned `{rq}` to {member}", to_channel=True, footertxt=f"User ID: {member.id}", color=0x00C8FF)
 
 
