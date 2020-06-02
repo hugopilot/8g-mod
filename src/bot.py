@@ -12,7 +12,6 @@ import asyncio
 # Source imports
 import config
 from models import elevatedperms
-# from models import measure
 from models.measure import Measure
 from models import errors
 from models.colors import COLOR
@@ -21,6 +20,7 @@ from modules import db
 from modules import log
 from modules import markdown
 from modules import update
+from modules import spam
 
 # Delete default help command
 bot = commands.Bot(command_prefix=config.prefix)
@@ -355,6 +355,9 @@ async def on_message_delete(message):
     # Ignore bots
     if(message.author.bot):
         return
+    # Return spam deletions
+    if(spam.deleting):
+        return
     await log._log(bot, f"**Message from {message.author} deleted in #{message.channel}**:\n{message.content}",to_channel=True, footertxt=f"Message ID: {message.id}; Created at: {message.created_at}", color=COLOR.BAD.value)
 
 @bot.event
@@ -409,6 +412,11 @@ async def on_command_error(context, exception):
     log._errlog(m)
 
     await context.send("Ohoh, something went wrong. Error has been logged")
+
+@bot.event
+async def on_message(message):
+    await spam.check(message)
+    await bot.process_commands(message)
 
 @bot.command()
 async def help(ctx):
