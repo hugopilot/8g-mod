@@ -30,7 +30,7 @@ if('Hi' in msg):
 Code can 'jump' to other sections. Example:
 ```py
 def check_if_hi(message):
-  if('Hi' in msg):
+  if('Hi' in message):
     return 'Hey!'
   return 'Hey?'
   
