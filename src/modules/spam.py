@@ -38,7 +38,7 @@ async def check(message:discord.Message):
         message_shift.append(cm)
         return
 
-    for i in range(0, len(message_shift)):
+    for i in range((len(message_shift)-1), -1, -1):
         # Check if duplicate
         im = message_shift[i]
 
