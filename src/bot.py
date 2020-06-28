@@ -344,6 +344,41 @@ async def on_member_join(member):
         await member.add_roles(rq, reason="Auto-assigned by Pluto's Shitty Mod Bot")
         await log._log(bot, f"Auto assigned `{rq}` to {member}", to_channel=True, footertxt=f"User ID: {member.id}", color=COLOR.INFO.value)
 
+# Logs member updates
+@bot.event
+async def on_member_update(before, after):
+     # Ignore bots
+    if(before.bot):
+        return
+    if(before.nick != after.nick):
+        await log._log(bot, f"""{before}'s nickname has been updated
+        **Before**:
+        {before.nick}
+    
+        **After**:
+        {after.nick}""", to_channel=True, footertxt=f"Message ID: {after.id}; Created at: {before.created_at}", color=COLOR.INFO.value)
+    
+    i = 0
+    n_arr = []
+    for name in after.roles:
+        n_arr.append(name.name)
+
+    for role in before.roles:
+        for role_n in n_arr[:]:
+            if(role.name == role_n.name):
+                n_arr.remove(role_n)
+    
+    print(n_arr)
+
+               
+    
+    # for b in n_arr[:]:
+    #     if(b == after.roles[i].name):
+    #         print(b)
+    #         n_arr.remove(b)
+        
+    # print(n_arr)
+    # await log._log(bot, f"""{before} was assigned the {n_arr} role""", to_channel=True, footertxt=f"Message ID: {after.id}; Created at: {before.created_at}", color=COLOR.INFO.value)
 
 # This event is risen when a member left the server (this can be the cause of kicking too!)
 @bot.event
