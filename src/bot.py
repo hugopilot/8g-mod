@@ -12,7 +12,6 @@ import asyncio
 # Source imports
 import config
 from models import elevatedperms
-# from models import measure
 from models.measure import Measure
 from models import errors
 from models.colors import COLOR
@@ -21,6 +20,7 @@ from modules import db
 from modules import log
 from modules import markdown
 from modules import update
+from modules import spam
 
 # Delete default help command
 bot = commands.Bot(command_prefix=config.prefix)
@@ -74,7 +74,7 @@ class minuteupdate(commands.Cog):
 
 
 bot.add_cog(minuteupdate(bot))
-
+bot.add_cog(spam.AntiSpam(bot))
 # Global functions
 def inDM(ctx):
 
@@ -355,8 +355,15 @@ async def on_message_delete(message):
     # Ignore bots
     if(message.author.bot):
         return
-    await log._log(bot, f"**Message from {message.author} deleted in #{message.channel}**:\n{message.content}",to_channel=True, footertxt=f"Message ID: {message.id}; Created at: {message.created_at}", color=COLOR.BAD.value)
-
+    al = message.guild.audit_logs(limit = 10, action = discord.AuditLogAction.message_delete)
+    re = al.get(target = message.author)
+    if(re == None or re.user == None):
+        await log._log(bot, f"**Message from {message.author} deleted in #{message.channel}**:\n{message.content}",to_channel=True, footertxt=f"Message ID: {message.id}; Created at: {message.created_at}", color=COLOR.BAD.value)
+    elif(re.user == client.me):
+        return
+    else:
+        await log._log(bot, f"**Message from {message.author.mention} deleted in <#{message.channel}> by {re.user.mention}**:\n{message.content}",to_channel=True, footertxt=f"Message ID: {message.id}; Created at: {message.created_at}", color=COLOR.BAD.value)
+    
 @bot.event
 async def on_message_edit(before, after):
     # Ignore bots
@@ -409,6 +416,7 @@ async def on_command_error(context, exception):
     log._errlog(m)
 
     await context.send("Ohoh, something went wrong. Error has been logged")
+
 
 @bot.command()
 async def help(ctx):
