@@ -1,75 +1,77 @@
 import discord
+from discord.ext.commands import Cog
+import datetime
+import asyncio
+
 import collections
+from collections import Counter
 import re
 
 from modules import log
 import config
 
-
-class SpamMessage():
-    """Stripped down version of discord.Message plus a 'duplicate' variable"""
-    duplicate = 0
-    message = None
-    def __init__(self, discmsg:discord.Message, dupe:int = 0):
-        self.message = discmsg
-        self.duplicate = dupe
-
 deleting = False
-
-# Our 'shift register' for messages. 
-message_shift = collections.deque([], 100)
-
 # Regular expressions for finding urls and emojis
 url_pattern = re.compile("http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+")
 emoji_pattern = re.compile(":([\w]*):|([\U0001F1E0-\U0001F1FF\U0001F300-\U0001F5FF\U0001F600-\U0001F64F\U0001F680-\U0001F6FF\U0001F700-\U0001F77F\U0001F780-\U0001F7FF\U0001F800-\U0001F8FF\U0001F900-\U0001F9FF\U0001FA00-\U0001FA6F\U0001FA70-\U0001FAFF\U00002702-\U000027B0])")
 
-async def check(message:discord.Message):
-    # cast to SpamMessage
-    cm = SpamMessage(message, 0)
-
-    # Check emoji count
-    if(len(emoji_pattern.findall(cm.message.content)) > config.emojitolerance):
-        deleting = True
-        await cm.message.delete()
+async def msgtruncator(delq):
+    global deleting
+    try:
+        while(len(delq) > 0):
+           deleting = True
+           msgl = delq.pop()
+           try:
+               for x in msgl:
+                    await x.delete()
+           except discord.errors.NotFound:
+               continue
         deleting = False
+    except asyncio.CancelledError:
+        pass
 
-    # Don't check if the register is not filled with anything or the message content == None
-    if(len(message_shift) < 1 or cm.message.content == None):
-        message_shift.append(cm)
-        return
+class AntiSpam(Cog):
+    def __init__(self, bot):
+        self.bot = bot
+        self.delq = []
+        self.prunning = False
+    
+    
 
-    for i in range((len(message_shift)-1), -1, -1):
-        # Check if duplicate
-        im = message_shift[i]
+    @Cog.listener()
+    async def on_message(self, message: discord.Message) -> None:
+        # ignore DM and bots
+        if(message.guild == None or message.author.bot):
+            return
 
-        # Check for the same author and channel
-        if(cm.message.author == im.message.author and cm.message.channel == im.message.channel):
-            #Check the time difference. If > 10 seconds, ignore
-            if((abs(cm.message.created_at.timestamp() - im.message.created_at.timestamp()) > 10)):
-                message_shift.append(cm)
-                return
+        
+        # Get the message history
+        earliest_relevant_at = datetime.datetime.utcnow() - datetime.timedelta(seconds=10)
+        relevant_messages = [ msg async for msg in message.channel.history(after=earliest_relevant_at, oldest_first=False) if not msg.author.bot ]
 
-            # Check if there is a link in both messages or message content is the same
-            if(cm.message.content == im.message.content):
-                
-                # Last check: does the message exceed the tolerance?
-                if(im.duplicate >= config.spamtolerance):
-                    # delete all messages
-                    deleting = True
-                    for msg in message_shift:
-                        if(msg.message.author == cm.message.author and msg.duplicate > 0):
-                            try:
-                                await msg.message.delete()
-                            except discord.errors.NotFound:
-                                continue
-                    deleting = False
-                    break
+        # Check emoji count
+        evm = [msg for msg in relevant_messages if len(emoji_pattern.findall(msg.content)) > config.emojitolerance]
+        if(len(evm) > 0):
+            # add it to delete queue
+            self.delq.append(evm)
 
-                else:
-                    # set duplicate
-                    cm.duplicate = im.duplicate + 1
-                    message_shift.append(cm)
-                    break
-    del cm
-    del im
+        # Put all messages to delete queue if it exceeds the messaging rate
+        rate = datetime.datetime.utcnow() - datetime.timedelta(seconds=2)
+        messages_to_check = [ msg for msg in relevant_messages if msg.created_at > rate ]
+        md = [msg for msg in messages_to_check if Counter(msg.author for msg in messages_to_check)[msg.author] > 1]
+        if(len(md)>0):
+            # There is spam there, create a dict with messages that have the same content but somehow got through first antispam round and add it to the queue
+            scm = [msg for msg in messages_to_check if Counter(msg.content for msg in messages_to_check)[msg.content] > 1 and Counter(msg.author for msg in messages_to_check)[msg.author] > 1]
+            print(scm)
+            if(len(scm) > 0):
+                self.delq.append(scm)
+            self.delq.append(md)
+        self.bot.loop.create_task(msgtruncator(self.delq))
+
+        
+
+
+   
+
+    
 
