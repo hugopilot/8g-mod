@@ -354,7 +354,41 @@ async def on_member_join(member):
         await member.add_roles(rq, reason="Auto-assigned by Pluto's Shitty Mod Bot")
         await log._log(bot, f"Auto assigned `{rq}` to {member}", to_channel=True, footertxt=f"User ID: {member.id}", color=COLOR.INFO.value)
 
+# Logs member updates
+@bot.event
+async def on_member_update(before, after):
+     # Ignore bots
+    if(before.bot):
+        return
 
+    # Check if the nickname changed. If true: log it
+    if(before.nick != after.nick):
+        await log._log(bot, f"""{before}'s nickname has been updated
+        **Before**:
+        {before.nick}
+    
+        **After**:
+        {after.nick}""", to_channel=True, footertxt=f"Message ID: {after.id}; Created at: {before.created_at}", color=COLOR.INFO.value)
+    
+    # Get a list of the assigned and removed roles
+    newassign = [role for role in after.roles if not after.roles in before.roles]
+    rmvassign = [role for role in before.roles if not before.roles in after.roles]    
+    
+    # For each newly assigned role, log it
+    if(len(newassign) > 0):
+        for role in newassign:
+            # Ignore '@everyone' role
+            if(role == before.guild.default_role):
+                continue
+            await log._log(bot, f"Role `{role.name}` assigned to {before}", to_channel=True, footertxt=f"User ID: {after.id}", color=COLOR.INFO.value)
+    # Do the same for the removed roles
+    if(len(rmvassign) > 0):
+        for role in rmvassign:
+            if(role == before.guild.default_role):
+                continue
+            await log._log(bot, f"Role `{role.name}` removed from {before}", to_channel=True, footertxt=f"User ID: {after.id}", color=COLOR.INFO.value)
+               
+    
 # This event is risen when a member left the server (this can be the cause of kicking too!)
 @bot.event
 async def on_member_remove(member):
