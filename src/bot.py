@@ -350,6 +350,8 @@ async def on_member_update(before, after):
      # Ignore bots
     if(before.bot):
         return
+
+    # Check if the nickname changed. If true: log it
     if(before.nick != after.nick):
         await log._log(bot, f"""{before}'s nickname has been updated
         **Before**:
@@ -358,28 +360,25 @@ async def on_member_update(before, after):
         **After**:
         {after.nick}""", to_channel=True, footertxt=f"Message ID: {after.id}; Created at: {before.created_at}", color=COLOR.INFO.value)
     
-    i = 0
-    n_arr = []
-    for name in after.roles:
-        n_arr.append(name.name)
-
-    for role in before.roles:
-        for role_n in n_arr[:]:
-            if(role.name == role_n.name):
-                n_arr.remove(role_n)
+    # Get a list of the assigned and removed roles
+    newassign = [role for role in after.roles if not after.roles in before.roles]
+    rmvassign = [role for role in before.roles if not before.roles in after.roles]    
     
-    print(n_arr)
-
+    # For each newly assigned role, log it
+    if(len(newassign) > 0):
+        for role in newassign:
+            # Ignore '@everyone' role
+            if(role == before.guild.default_role):
+                continue
+            await log._log(bot, f"Role `{role.name}` assigned to {before}", to_channel=True, footertxt=f"User ID: {after.id}", color=COLOR.INFO.value)
+    # Do the same for the removed roles
+    if(len(rmvassign) > 0):
+        for role in rmvassign:
+            if(role == before.guild.default_role):
+                continue
+            await log._log(bot, f"Role `{role.name}` removed from {before}", to_channel=True, footertxt=f"User ID: {after.id}", color=COLOR.INFO.value)
                
     
-    # for b in n_arr[:]:
-    #     if(b == after.roles[i].name):
-    #         print(b)
-    #         n_arr.remove(b)
-        
-    # print(n_arr)
-    # await log._log(bot, f"""{before} was assigned the {n_arr} role""", to_channel=True, footertxt=f"Message ID: {after.id}; Created at: {before.created_at}", color=COLOR.INFO.value)
-
 # This event is risen when a member left the server (this can be the cause of kicking too!)
 @bot.event
 async def on_member_remove(member):
