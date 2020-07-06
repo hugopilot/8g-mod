@@ -371,8 +371,8 @@ async def on_member_update(before, after):
         {after.nick}""", to_channel=True, footertxt=f"Message ID: {after.id}; Created at: {before.created_at}", color=COLOR.INFO.value)
     
     # Get a list of the assigned and removed roles
-    newassign = [role for role in after.roles if not after.roles in before.roles]
-    rmvassign = [role for role in before.roles if not before.roles in after.roles]    
+    #newassign = [role for role in after.roles if not after.roles in before.roles]
+    #rmvassign = [role for role in before.roles if not before.roles in after.roles]    
     
     # For each newly assigned role, log it
     if(len(newassign) > 0):
