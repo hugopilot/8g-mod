@@ -176,3 +176,15 @@ def RemoveMuteMember(userID:int):
     cu.execute(q)
     c.commit()
     close_con(c)
+
+def DeleteInfraction(guid:str):
+    # Connect to database
+    c = connect()
+    cu = c.cursor();
+
+    # Format the SQL Query by putting the arguments into the query
+    q = f"DELETE FROM infractions WHERE GUID = '{guid}'"
+    # Execute the SQL Query
+    cu.execute(q)
+    c.commit()
+    close_con(c)
