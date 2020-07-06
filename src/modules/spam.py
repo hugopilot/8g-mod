@@ -62,7 +62,6 @@ class AntiSpam(Cog):
         if(len(md)>0):
             # There is spam there, create a dict with messages that have the same content but somehow got through first antispam round and add it to the queue
             scm = [msg for msg in messages_to_check if Counter(msg.content for msg in messages_to_check)[msg.content] > 1 and Counter(msg.author for msg in messages_to_check)[msg.author] > 1]
-            print(scm)
             if(len(scm) > 0):
                 self.delq.append(scm)
             self.delq.append(md)

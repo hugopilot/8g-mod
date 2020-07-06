@@ -241,26 +241,36 @@ async def purge(ctx, amount:int = 50):
 async def whois(ctx, musr: typing.Union[discord.Member, str] = None):
 
     # Embed
-    embed=discord.Embed(title="WHOIS", description=f"{musr.mention}", color=0x469eff)
-    embed.set_author(name="Pluto's Shitty Mod Bot")
-    embed.set_thumbnail(url=f"{str(musr.avatar_url)}")
-    embed.add_field(name="Username", value=f"{musr}", inline=True)
-    embed.add_field(name="Registered", value=f"{str(musr.created_at)}", inline=True)
-    if(not inDM(ctx)):
-        embed.add_field(name="Nickname", value=f"{musr.nick}", inline=True)
-        embed.add_field(name="Joined", value=f"{str(musr.joined_at)}", inline=True)
+    if(isinstance(musr, discord.Member)):
+        embed=discord.Embed(title="WHOIS", description=f"{musr.mention}", color=0x469eff)
+        embed.set_author(name="Pluto's Shitty Mod Bot")
+        embed.set_thumbnail(url=f"{str(musr.avatar_url)}")
+        embed.add_field(name="Username", value=f"{musr}", inline=True)
+        embed.add_field(name="Registered", value=f"{str(musr.created_at)}", inline=True)
+        if(not inDM(ctx)):
+            embed.add_field(name="Nickname", value=f"{musr.nick}", inline=True)
+            embed.add_field(name="Joined", value=f"{str(musr.joined_at)}", inline=True)
+        embed.set_footer(text=f"User ID: {musr.id}")
+    if(isinstance(musr, str)):
+        embed=discord.Embed(title="WHOIS", description=f"<@{musr}>", color=0x469eff)
+        embed.set_author(name="Pluto's Shitty Mod Bot")
+    
+    
 
     # Check if the author has elevated permissions
     getter = functools.partial(discord.utils.get, ctx.author.roles)
     if any(getter(id=item) is not None if isinstance(item, int) else getter(name=item) is not None for item in elevatedperms.elevated):
 
         # Get all infractions and convert it into a markdown format
-        md = markdown.infr_data_to_md(db.GetAllInfractions(musr.id))
+        if(isinstance(musr, str)):
+            md = markdown.infr_data_to_md(db.GetAllInfractions(musr))
+        else:
+            md = markdown.infr_data_to_md(db.GetAllInfractions(musr.id))
 
         # set the embed
         embed.add_field(name="Infractions", value=f"{md}", inline=False)
-        
-    embed.set_footer(text=f"User ID: {musr.id}")
+    
+    
     await ctx.send(embed=embed)
 
 @bot.command()
@@ -287,36 +297,36 @@ async def on_member_ban(guild, user):
     await log._log(bot, f"{user} was banned with reason: {reason}",to_channel=True, footertxt=f"User ID: {user.id}", color=COLOR.ATTENTION_BAD.value)
     
 @bot.command()
-async def infraction(ctx, id:str):
+@commands.has_any_role(*elevatedperms.elevated)
+async def infraction(ctx, id:str, cmd:str):
     
 
     res = db.GetInfraction(id)
-
+    
     if(len(res) < 1):
         await ctx.send("🚫 Didn't find any infractions")
         return
+    if(cmd == 'delete'):
+        if(len(res) == 1):
+            db.DeleteInfraction(res[0][0])
+            await ctx.send(f"✅ Infraction {res[0][0]} deleted!")
+            await log._log(bot, f"{ctx.author.mention} deleted infraction {res[0][0]}", to_channel = True, footertxt=f'User ID: {ctx.author.id}', color=COLOR.ATTENTION_INFO.value)
+            return 
 
-    embed=discord.Embed(title="WHOIS", description=f"Found {len(res)} results. Showing first", color=0x469EFF)
+    embed=discord.Embed(title="Infractions", description=f"Found {len(res)} results. Showing first", color=0x469EFF)
     embed.set_author(name="Pluto's Shitty Mod Bot")
-    for case in res:
+    case = res[0]
         
-        embed.add_field(name="GUID", value=f"{case[0]}", inline=True)
-        u = bot.get_user(int(case[1]))
-        if(u == None):
-            embed.add_field(name="User", value=f"{case[1]}", inline=True)
-        else:
-            embed.add_field(name="User", value=f"{u.mention}", inline=True)
-        embed.add_field(name="Type", value=f"{str(Measure(case[2]))}", inline=True)
-        embed.add_field(name="Reason", value=f"{case[3]}", inline=True)
-        a = bot.get_user(int(case[4]))
-        if(a == None):
-            embed.add_field(name="Recorded by", value=f"{case[4]}", inline=True)
-        else:
-            embed.add_field(name="Recorded by", value=f"{a.mention}", inline=True)
-        embed.add_field(name="Timestamp", value=f"{time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(int(case[5])))}", inline=True)
+    embed.add_field(name="GUID", value=f"{case[0]}", inline=True)
 
-        await ctx.send(embed=embed)
-        del embed
+    embed.add_field(name="User", value=f"<@{int(case[1])}>", inline=True)
+    embed.add_field(name="Type", value=f"{str(Measure(case[2]))}", inline=True)
+    embed.add_field(name="Reason", value=f"{case[3]}", inline=True)
+    embed.add_field(name="Recorded by", value=f"<@{int(case[4])}>", inline=True)
+    embed.add_field(name="Timestamp", value=f"{time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(int(case[5])))}", inline=True)
+
+    await ctx.send(embed=embed)
+    del embed
 
 # This event is risen when a member joins the server
 @bot.event
@@ -356,13 +366,13 @@ async def on_message_delete(message):
     if(message.author.bot):
         return
     al = message.guild.audit_logs(limit = 10, action = discord.AuditLogAction.message_delete)
-    re = al.get(target = message.author)
+    re = await al.get(target = message.author)
     if(re == None or re.user == None):
-        await log._log(bot, f"**Message from {message.author} deleted in #{message.channel}**:\n{message.content}",to_channel=True, footertxt=f"Message ID: {message.id}; Created at: {message.created_at}", color=COLOR.BAD.value)
-    elif(re.user == client.me):
+        await log._log(bot, f"**Message from {message.author} deleted in #{message.channel.id}**:\n{message.content}",to_channel=True, footertxt=f"Message ID: {message.id}; Created at: {message.created_at}", color=COLOR.BAD.value)
+    elif(re.user == bot.user):
         return
     else:
-        await log._log(bot, f"**Message from {message.author.mention} deleted in <#{message.channel}> by {re.user.mention}**:\n{message.content}",to_channel=True, footertxt=f"Message ID: {message.id}; Created at: {message.created_at}", color=COLOR.BAD.value)
+        await log._log(bot, f"**Message from {message.author.mention} deleted in <#{message.channel.id}> by {re.user.mention}**:\n{message.content}",to_channel=True, footertxt=f"Message ID: {message.id}; Created at: {message.created_at}", color=COLOR.BAD.value)
     
 @bot.event
 async def on_message_edit(before, after):
