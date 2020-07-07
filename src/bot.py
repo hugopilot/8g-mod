@@ -402,14 +402,14 @@ async def on_message_delete(message):
         return
     if(spam.deleting):
         return
-    al = message.guild.audit_logs(limit = 3, action = discord.AuditLogAction.message_delete, after = (datetime.datetime.utcnow - datetime.timedelta(seconds = 10)))
+    al = message.guild.audit_logs(limit = 3, action = discord.AuditLogAction.message_delete, after = datetime.datetime.utcnow() - datetime.timedelta(seconds = 10))
     re = await al.get(target = message.author)
     if(re == None or re.user == None):
-        await log._log(bot, f"**Message from {message.author.mention} deleted in <#{message.channel.id}>**:\n{message.content}",to_channel=True, footertxt=f"Message ID: {message.id}; Created at: {message.created_at}", color=COLOR.BAD.value)
+        await log._log(bot, f"**Message from {message.author.mention} deleted in <#{message.channel.id}>**:\n{message.content}",to_channel=True, to_log=False, footertxt=f"Message ID: {message.id}; Created at: {message.created_at}", color=COLOR.BAD.value, expiry = config.sensitive_expiry)
     elif(re.user == bot.user):
         return
     else:
-        await log._log(bot, f"**Message from {message.author.mention} deleted in <#{message.channel.id}> by {re.user.mention}**:\n{message.content}",to_channel=True, footertxt=f"Message ID: {message.id}; Created at: {message.created_at}", color=COLOR.BAD.value)
+        await log._log(bot, f"**Message from {message.author.mention} deleted in <#{message.channel.id}> by {re.user.mention}**:\n{message.content}",to_channel=True, to_log=False, footertxt=f"Message ID: {message.id}; Created at: {message.created_at}", color=COLOR.BAD.value, expiry = config.sensitive_expiry)
     
 @bot.event
 async def on_message_edit(before, after):
@@ -418,13 +418,13 @@ async def on_message_edit(before, after):
         return
     if(before.content == after.content):
         return
-    await log._log(bot, f"""{after.author} edited message in #{before.channel}:
+    await log._log(bot, f"""{after.author.mention} edited message in <#{before.channel}>:
     
     **Before**:
     {before.content}
     
     **After**:
-    {after.content}""", to_channel=True, footertxt=f"Message ID: {after.id}; Created at: {before.created_at}", color=COLOR.INFO.value)
+    {after.content}""", to_channel=True, to_log = False, footertxt=f"Message ID: {after.id}; Created at: {before.created_at}", color=COLOR.INFO.value, expiry = config.sensitive_expiry)
 
 # this is used for spam prevention
 

@@ -3,7 +3,7 @@ import config
 import datetime
 from datetime import date
 
-async def _log(bot, message, *, to_channel:bool = False, footertxt=None, color=0xFFFFFF):
+async def _log(bot, message, *, to_channel:bool = False, to_log:bool = True, footertxt=None, color=0xFFFFFF, expiry=None):
     """This function is used to log events from the bot in the console, a logfile and log channel
     
     Parameters:
@@ -14,17 +14,17 @@ async def _log(bot, message, *, to_channel:bool = False, footertxt=None, color=0
     color: Custom embed color can be put here
     """
 
+    if(to_log):
+        # Message being formatted to '[date] message' format 
+        m = '[{}] {}'.format(datetime.datetime.utcnow(), message)
     
-    # Message being formatted to '[date] message' format 
-    m = '[{}] {}'.format(datetime.datetime.utcnow(), message)
-    
-    # Log entry written to file by opening the file, writing to it and then closing it
-    with open(config.logloc, 'a', encoding='utf-8') as log_f:
-        log_f.write('{}\n'.format(m))
-        log_f.close()
+        # Log entry written to file by opening the file, writing to it and then closing it
+        with open(config.logloc, 'a', encoding='utf-8') as log_f:
+            log_f.write('{}\n'.format(m))
+            log_f.close()
 
-    # print log entry to console
-    print(m)
+        # print log entry to console
+        print(m)
 
     # Message being prepared for log
     m = f'{message}'
@@ -40,7 +40,7 @@ async def _log(bot, message, *, to_channel:bool = False, footertxt=None, color=0
             embed.set_footer(text=str(footertxt))
 
         # Finally, send it to the channel
-        await ch.send(embed=embed)
+        await ch.send(embed=embed, delete_after=expiry)
         
         # Delete the objects
         del embed
