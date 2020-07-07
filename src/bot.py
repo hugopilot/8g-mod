@@ -9,6 +9,7 @@ import traceback
 import typing
 import functools
 import asyncio
+import datetime
 # Source imports
 import config
 from models import elevatedperms
@@ -399,10 +400,12 @@ async def on_message_delete(message):
     # Ignore bots
     if(message.author.bot):
         return
-    al = message.guild.audit_logs(limit = 10, action = discord.AuditLogAction.message_delete)
+    if(spam.deleting):
+        return
+    al = message.guild.audit_logs(limit = 3, action = discord.AuditLogAction.message_delete, after = (datetime.datetime.utcnow - datetime.timedelta(seconds = 10)))
     re = await al.get(target = message.author)
     if(re == None or re.user == None):
-        await log._log(bot, f"**Message from {message.author} deleted in #{message.channel.id}**:\n{message.content}",to_channel=True, footertxt=f"Message ID: {message.id}; Created at: {message.created_at}", color=COLOR.BAD.value)
+        await log._log(bot, f"**Message from {message.author.mention} deleted in <#{message.channel.id}>**:\n{message.content}",to_channel=True, footertxt=f"Message ID: {message.id}; Created at: {message.created_at}", color=COLOR.BAD.value)
     elif(re.user == bot.user):
         return
     else:
