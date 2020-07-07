@@ -376,18 +376,18 @@ async def on_member_update(before, after):
     #rmvassign = [role for role in before.roles if not before.roles in after.roles]    
     
     # For each newly assigned role, log it
-    if(len(newassign) > 0):
-        for role in newassign:
-            # Ignore '@everyone' role
-            if(role == before.guild.default_role):
-                continue
-            await log._log(bot, f"Role `{role.name}` assigned to {before}", to_channel=True, footertxt=f"User ID: {after.id}", color=COLOR.INFO.value)
+#    if(len(newassign) > 0):
+#        for role in newassign:
+#            # Ignore '@everyone' role
+#            if(role == before.guild.default_role):
+#                continue
+#            await log._log(bot, f"Role `{role.name}` assigned to {before}", to_channel=True, footertxt=f"User ID: {after.id}", color=COLOR.INFO.value)
     # Do the same for the removed roles
-    if(len(rmvassign) > 0):
-        for role in rmvassign:
-            if(role == before.guild.default_role):
-                continue
-            await log._log(bot, f"Role `{role.name}` removed from {before}", to_channel=True, footertxt=f"User ID: {after.id}", color=COLOR.INFO.value)
+#    if(len(rmvassign) > 0):
+#        for role in rmvassign:
+#            if(role == before.guild.default_role):
+#                continue
+#            await log._log(bot, f"Role `{role.name}` removed from {before}", to_channel=True, footertxt=f"User ID: {after.id}", color=COLOR.INFO.value)
                
     
 # This event is risen when a member left the server (this can be the cause of kicking too!)
