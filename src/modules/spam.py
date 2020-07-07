@@ -58,7 +58,7 @@ class AntiSpam(Cog):
         # Put all messages to delete queue if it exceeds the messaging rate
         rate = datetime.datetime.utcnow() - datetime.timedelta(seconds=config.spamtolerance)
         messages_to_check = [ msg for msg in relevant_messages if msg.created_at > rate ]
-        md = [msg for msg in messages_to_check if Counter(msg.author for msg in messages_to_check)[msg.author] > 1]
+        md = [msg for msg in messages_to_check if Counter(msg.author for msg in messages_to_check)[msg.author] > config.spamthreshold]
         if(len(md)>0):
             # There is spam there, create a dict with messages that have the same content but somehow got through first antispam round and add it to the queue
             scm = [msg for msg in messages_to_check if Counter(msg.content for msg in messages_to_check)[msg.content] > 1 and Counter(msg.author for msg in messages_to_check)[msg.author] > 1]
