@@ -418,7 +418,7 @@ async def on_message_edit(before, after):
         return
     if(before.content == after.content):
         return
-    await log._log(bot, f"""{after.author.mention} edited message in <#{before.channel}>:
+    await log._log(bot, f"""{after.author.mention} edited message in <#{before.channel.id}>:
     
     **Before**:
     {before.content}

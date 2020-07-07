@@ -55,6 +55,11 @@ class AntiSpam(Cog):
             # add it to delete queue
             self.delq.append(evm)
 
+        # Check number of mentions
+        mvm = [msg for msg in relevant_messages if len(msg.mentions) > config.mentiontolerance]
+        if(len(mvm) > 0):
+            self.delq.append(mvm)
+
         # Put all messages to delete queue if it exceeds the messaging rate
         rate = datetime.datetime.utcnow() - datetime.timedelta(seconds=config.spamtolerance)
         messages_to_check = [ msg for msg in relevant_messages if msg.created_at > rate ]
