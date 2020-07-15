@@ -92,16 +92,21 @@ def inDM(ctx):
 @bot.command()
 @commands.has_any_role(*elevatedperms.elevated)
 # The function name is the name of the command, unless specified.  
-async def ban(ctx, musr: typing.Union[discord.User, str] = None, *, reason: str = "No reason supplied; Pluto Mod Bot"):
+async def ban(ctx, musr: typing.Union[discord.Member, str] = None, *, reason: str = "No reason supplied; Pluto Mod Bot"):
 
     # Check if the musr object was properly parsed as a User object
-    if(isinstance(musr, discord.User)):
-        # Put it in the database
-        db.AddInfraction(musr.id, Measure.BAN, reason, ctx.author.id)
-
+    if(isinstance(musr, discord.Member)):
         # ignore if self
         if(ctx.author == musr):
             return
+
+        # Fail if user is invincible
+        if(len([r for r in musr.roles if r.id in config.invincibleroles]) > 0):
+            await ctx.send("_🚫 You can't ban invincible users_")
+            return
+
+        # Put it in the database
+        db.AddInfraction(musr.id, Measure.BAN, reason, ctx.author.id)
 
         await musr.send(f"You were banned from {ctx.guild} • {reason}")
 
@@ -117,18 +122,26 @@ async def ban(ctx, musr: typing.Union[discord.User, str] = None, *, reason: str 
         
         # Send feedback
         await ctx.send(f"✅ Banned {musr} | {reason}")
+    else:
+        await ctx.send("🚫 Couldn't parse user properly")
 
 @bot.command()
 @commands.has_any_role(*elevatedperms.elevated)
-async def kick(ctx, musr: typing.Union[discord.User, str] = None, *, reason: str = None):
+async def kick(ctx, musr: typing.Union[discord.Member, str] = None, *, reason: str = None):
     # Check if the musr object was properly parsed as a User object
-    if(isinstance(musr, discord.User)):
-        # Put it in the database
-        db.AddInfraction(musr.id, Measure.KICK, reason, ctx.author.id)
+    if(isinstance(musr, discord.Member)):
 
         # ignore if self
         if(ctx.author == musr):
             return
+
+        # Fail if user is invincible
+        if(len([r for r in musr.roles if r.id in config.invincibleroles]) > 0):
+            await ctx.send("_🚫 You can't kick invincible users_")
+            return
+
+        # Put it in the database
+        db.AddInfraction(musr.id, Measure.KICK, reason, ctx.author.id)
 
         # Add it to the recentrmv list
         global recentrmv
@@ -144,6 +157,8 @@ async def kick(ctx, musr: typing.Union[discord.User, str] = None, *, reason: str
 
         # Send feedback
         await ctx.send(f"✅ {musr} was kicked | {reason}")
+    else:
+        await ctx.send("🚫 Couldn't parse user properly")
 
 @bot.command()
 @commands.has_any_role(*elevatedperms.elevated)
@@ -152,6 +167,11 @@ async def mute(ctx, musr: typing.Union[discord.Member, str] = None, duration:str
     if(isinstance(musr, discord.Member)):
         # ignore if self
         if(ctx.author == musr):
+            return
+
+        # Fail if user is invincible
+        if(len([r for r in musr.roles if r.id in config.invincibleroles]) > 0):
+            await ctx.send("_🚫 You can't mute invincible users_")
             return
 
         # Put it in the database
@@ -182,6 +202,8 @@ async def mute(ctx, musr: typing.Union[discord.Member, str] = None, duration:str
 
         # Send feedback
         await ctx.send(f"✅ {musr} was muted for {markdown.duration_to_text(duration)} | {reason}")
+    else:
+        await ctx.send("🚫 Couldn't parse user properly")
 
 @bot.command()
 @commands.has_any_role(*elevatedperms.elevated)
@@ -201,30 +223,41 @@ async def unmute(ctx, musr: typing.Union[discord.Member, str]):
         await musr.remove_roles(mutedr, reason =f'Lifted by {ctx.author}')
         await log._log(bot, f"Mute on {musr} lifted by {ctx.author}.",to_channel=True,footertxt=f"User ID: {musr.id}",color=COLOR.ATTENTION_OK.value)
         await ctx.send(f"✅ {musr} was unmuted!")
+    else:
+        await ctx.send("🚫 Couldn't parse user properly")
 
 
 @bot.command()
 @commands.has_any_role(*elevatedperms.elevated)
-async def warn(ctx, musr: typing.Union[discord.User, str] = None, *, reason: str = None):
+async def warn(ctx, musr: typing.Union[discord.Member, str] = None, *, reason: str = None):
     # Check if reason is None
     if(reason == None):
-        await ctx.send("_Reason must be supplied!_")
+        await ctx.send("_🚫 Reason must be supplied!_")
         return
 
-    # Check if the musr object was properly parsed as a User object
-    if(isinstance(musr, discord.User)):
+    
+
+    # Check if the musr object was properly parsed as a Member object
+    if(isinstance(musr, discord.Member)):
         # ignore if self
         if(ctx.author == musr):
+            return
+
+        # Fail if user is invincible
+        if(len([r for r in musr.roles if r.id in config.invincibleroles]) > 0):
+            await ctx.send("_🚫 You can't warn invincible users_")
             return
 
         # Put it in the database
         db.AddInfraction(musr.id, Measure.WARN, reason, ctx.author.id)
 
         # Log it
-        await log._log(bot, f"{musr} was warned by {ctx.author} with reason: {reason}",to_channel=True, footertxt=f"User ID: {musr.id}",color=COLOR.ATTENTION_WARN.value)
+        await log._log(bot, f"{musr.mention} was warned by {ctx.author.mention} with reason: {reason}",to_channel=True, footertxt=f"User ID: {musr.id}",color=COLOR.ATTENTION_WARN.value)
 
         # Send feedback
         await ctx.send(f"✅ {musr} was warned | {reason}")
+    else:
+        await ctx.send("🚫 Couldn't parse user properly")
 
 @bot.command()
 @commands.has_any_role(*elevatedperms.elevated)

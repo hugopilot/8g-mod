@@ -43,7 +43,9 @@ class AntiSpam(Cog):
         # ignore DM and bots
         if(message.guild == None or message.author.bot):
             return
-
+        # Ignore invincible dudes
+        if(len([r for r in message.author.roles if r.id in config.invincibleroles]) > 0):
+            return
         
         # Get the message history
         earliest_relevant_at = datetime.datetime.utcnow() - datetime.timedelta(seconds=10)
