@@ -78,6 +78,10 @@ bot.add_cog(minuteupdate(bot))
 bot.add_cog(spam.AntiSpam(bot))
 # Global functions
 def inDM(ctx):
+    """Checks if a message was sent in DMs
+    
+    Required parameters:
+    - ctx: Discord.Context object"""
 
     # If message guild is None, we are in DMs
     if(ctx.guild == None):
@@ -334,20 +338,28 @@ async def on_member_ban(guild, user):
 @commands.has_any_role(*elevatedperms.elevated)
 async def infraction(ctx, id:str, cmd:str):
     
-
+    # Get infraction info from the database
     res = db.GetInfraction(id)
     
+    # Error out if nothing is found
     if(len(res) < 1):
         await ctx.send("🚫 Didn't find any infractions")
         return
+
+    # if delete argument was supplied with the command 
     if(cmd == 'delete'):
+        # If just one result is found, delete it
         if(len(res) == 1):
+            # Delete from the database
             db.DeleteInfraction(res[0][0])
+
+            # Give feedback; log it and exit
             await ctx.send(f"✅ Infraction {res[0][0]} deleted!")
             await log._log(bot, f"{ctx.author.mention} deleted infraction {res[0][0]}", to_channel = True, footertxt=f'User ID: {ctx.author.id}', color=COLOR.ATTENTION_INFO.value)
             return 
 
-    embed=discord.Embed(title="Infractions", description=f"Found {len(res)} results. Showing first", color=0x469EFF)
+    # Create an embed, fill it with data and send it!
+    embed=discord.Embed(title="Infractions", description=f"Found {len(res)} result(s). Showing first", color=0x469EFF)
     embed.set_author(name="Pluto's Shitty Mod Bot")
     case = res[0]
         

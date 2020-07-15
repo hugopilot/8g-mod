@@ -16,6 +16,11 @@ url_pattern = re.compile("http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[
 emoji_pattern = re.compile(":([\w]*):|([\U0001F1E0-\U0001F1FF\U0001F300-\U0001F5FF\U0001F600-\U0001F64F\U0001F680-\U0001F6FF\U0001F700-\U0001F77F\U0001F780-\U0001F7FF\U0001F800-\U0001F8FF\U0001F900-\U0001F9FF\U0001FA00-\U0001FA6F\U0001FA70-\U0001FAFF\U00002702-\U000027B0])")
 
 async def msgtruncator(delq):
+    """Deletes all messages provided by a list/tuple
+    
+    Required parameters:
+    delq: 'deletion queue'. List of messages that need to be deleted
+    """
     global deleting
     try:
         while(len(delq) > 0):
@@ -31,13 +36,17 @@ async def msgtruncator(delq):
         pass
 
 class AntiSpam(Cog):
+    """This cog detects spam and deletes it
+    
+    Constructor:
+    Required parameters:
+    - bot: bot object"""
+
     def __init__(self, bot):
         self.bot = bot
         self.delq = []
         self.prunning = False
     
-    
-
     @Cog.listener()
     async def on_message(self, message: discord.Message) -> None:
         # ignore DM and bots
@@ -67,11 +76,13 @@ class AntiSpam(Cog):
         messages_to_check = [ msg for msg in relevant_messages if msg.created_at > rate ]
         md = [msg for msg in messages_to_check if Counter(msg.author for msg in messages_to_check)[msg.author] > config.spamthreshold]
         if(len(md)>0):
-            # There is spam there, create a dict with messages that have the same content but somehow got through first antispam round and add it to the queue
+            # There is spam there, create a dict with messages that have the same content but somehow got through first antispam round and add it to the deletion queue
             scm = [msg for msg in messages_to_check if Counter(msg.content for msg in messages_to_check)[msg.content] > 1 and Counter(msg.author for msg in messages_to_check)[msg.author] > 1]
             if(len(scm) > 0):
                 self.delq.append(scm)
             self.delq.append(md)
+
+        # Start a seperate thread to delete the messages in the deletion queue
         self.bot.loop.create_task(msgtruncator(self.delq))
 
         

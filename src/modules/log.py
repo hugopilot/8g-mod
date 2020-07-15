@@ -6,12 +6,16 @@ from datetime import date
 async def _log(bot, message, *, to_channel:bool = False, to_log:bool = True, footertxt=None, color=0xFFFFFF, expiry=None):
     """This function is used to log events from the bot in the console, a logfile and log channel
     
-    Parameters:
-    bot: bot object
-    message: log entry message
-    to_channel: If true, the message will print in the log channel set in the config file
-    footertxt: Custom embed footer text can be put here
-    color: Custom embed color can be put here
+    Required parameters:
+    - bot: bot object
+    - message: log entry message
+
+    Optional parameters:
+    - to_channel: If true, the message will print in the log channel set in the config file
+    - to_log: If true, the message will be printed in the bot.log file
+    - footertxt: Custom embed footer text can be put here
+    - color: Defines custom embed color
+    - expiry: Auto-deletes log entry from log channel (in seconds)
     """
 
     if(to_log):
