@@ -277,10 +277,10 @@ async def purge(ctx, amount:int = 50):
 #region info commands
 @bot.command()
 async def whois(ctx, musr: typing.Union[discord.Member, str] = None):
-
+    
     # Embed
     if(isinstance(musr, discord.Member)):
-        embed=discord.Embed(title="WHOIS", description=f"{musr.mention}", color=0x469eff)
+        embed=discord.Embed(title="WHOIS", description=f"<@{musr}>", color=0x469eff)
         embed.set_author(name="Pluto's Shitty Mod Bot")
         embed.set_thumbnail(url=f"{str(musr.avatar_url)}")
         embed.add_field(name="Username", value=f"{musr}", inline=True)
@@ -289,7 +289,7 @@ async def whois(ctx, musr: typing.Union[discord.Member, str] = None):
             embed.add_field(name="Nickname", value=f"{musr.nick}", inline=True)
             embed.add_field(name="Joined", value=f"{str(musr.joined_at)}", inline=True)
         embed.set_footer(text=f"User ID: {musr.id}")
-    if(isinstance(musr, str)):
+    else:
         embed=discord.Embed(title="WHOIS", description=f"<@{musr}>", color=0x469eff)
         embed.set_author(name="Pluto's Shitty Mod Bot")
     
@@ -301,7 +301,13 @@ async def whois(ctx, musr: typing.Union[discord.Member, str] = None):
 
         # Get all infractions and convert it into a markdown format
         if(isinstance(musr, str)):
-            md = markdown.infr_data_to_md(db.GetAllInfractions(musr))
+            # if the argument provided was not automatically converted to discord.Member, try to parse it to an id (int) 
+            try:
+                md = markdown.infr_data_to_md(db.GetAllInfractions(int(musr)))
+            # Return if casting failed
+            except ValueError:
+                await ctx.send("🚫 Couldn't parse user properly")
+                return
         else:
             md = markdown.infr_data_to_md(db.GetAllInfractions(musr.id))
 
