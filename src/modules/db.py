@@ -20,13 +20,13 @@ def connect(file = config.databaseloc):
 def close_con(con):
     con.close()
 
-def _sql_escape_string(strr):
+def _sql_escape_string(strr:str):
     """Escape special characters that could allow SQL injection
     Required parameters:
-    - strr: string to check
+    - strr:str = string to check
     
     Returns:
-    string(escaped_string)"""
+    escaped_string:str"""
     sr = str(strr)
     s = sr.replace("'", "''")
     return s 
@@ -63,10 +63,10 @@ def _sql_get_muted():
 def CheckMuted(userID:int):
     """Check if a user is muted
     Required parameters:
-    - userID: Discord User ID to check
+    - userID = Discord User ID to check
     
     Returns:
-    bool(muted)"""
+    muted:bool"""
     res = _sql_get_muted()
     if(res == False):
         return False
@@ -80,10 +80,10 @@ def AddInfraction(userID:int, measuretype:measure.Measure, reason:str, author:in
     """Adds a infraction to the database
     
        Required parameters:
-       - userID = Discord ID of the user that disobeyed the rules
-       - measuretype = Type of measure enum (see models/measure.py)
-       - reason = The reason why the infraction should be recorded
-       - author = Discord ID of the user that called the command
+       - userID:int = Discord ID of the user that disobeyed the rules
+       - measuretype:measure.Measure = Type of measure enum (see models/measure.py)
+       - reason:str = The reason why the infraction should be recorded
+       - author:int = Discord ID of the user that called the command
     """
     # Create a new GUID
     guid = str(uuid.uuid4())
@@ -109,7 +109,10 @@ def GetAllInfractions(userID:int):
     """Gets all infractions from a user from the database
         
         Required parameters:
-        userID = Discord ID of the user
+        userID:int = Discord ID of the user
+
+        Returns:
+        result:tuple
     """
 
     # Connect to database
@@ -130,7 +133,7 @@ def GetInfraction(id:str):
         id = (Part of) GUID of the infraction
 
         Returns:
-        tuple(infractions)
+        result:tuple
     """
 
     # Connect to database
@@ -151,8 +154,8 @@ def SetMuteMember(userID:int, mutelift:int):
     """Mutes a member in the database
     
     Required parameters:
-    - userID: Discord ID of the user
-    - mutelift: Time when the mute should be lifted (epoch int)"""
+    - userID:int = Discord ID of the user
+    - mutelift:int = Time when the mute should be lifted (epoch int)"""
     # Create new entry if user doesn't exist in db yet
     if(not _sql_user_exists(userID)):
         # Connect to database
@@ -185,7 +188,7 @@ def RemoveMuteMember(userID:int):
     """Unmutes a member in the database
     
     Required parameters:
-    - userID: Discord ID of the user"""
+    - userID:int = Discord ID of the user"""
 
     # Connect to database
     c = connect()
@@ -203,7 +206,7 @@ def DeleteInfraction(guid:str):
     """Deletes an infraction from the database
 
     Required parameters:
-    - guid: GUID of the infraction"""
+    - guid:str = GUID of the infraction"""
 
     # Connect to database
     c = connect()
