@@ -5,10 +5,10 @@ class Measure(IntEnum):
     """Measure enum (inherited from IntEnum)
     
     Values:
-    0 = Warning
-    1 = Mute
-    2 = Kick
-    3 = Ban
+    0 = WARN
+    1 = MUTE
+    2 = KICK
+    3 = BAN
     
     Functions:
     __int__(self) returns the integer value representing a certain measure

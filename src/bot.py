@@ -81,8 +81,10 @@ def inDM(ctx):
     """Checks if a message was sent in DMs
     
     Required parameters:
-    - ctx: Discord.Context object"""
+    - ctx: discord.Context object
 
+    Returns:
+    - isDM: str"""
     # If message guild is None, we are in DMs
     if(ctx.guild == None):
         return True
@@ -172,8 +174,10 @@ async def mute(ctx, musr: typing.Union[discord.Member, str] = None, duration:str
         # ignore if self
         if(ctx.author == musr):
             return
-
-        # Fail if user is invincible
+        
+        alts = db.GetAlts(musr.id)
+        
+        # Fail if user is invincible:
         if(len([r for r in musr.roles if r.id in config.invincibleroles]) > 0):
             await ctx.send("_🚫 You can't mute invincible users_")
             return
@@ -199,6 +203,7 @@ async def mute(ctx, musr: typing.Union[discord.Member, str] = None, duration:str
         # Assign the muted role
         await musr.add_roles(mr, reason=reason)
 
+        
         await musr.send(f"You were muted in {ctx.guild} for {markdown.duration_to_text(duration)} • {reason}")
 
         # Log it
@@ -280,7 +285,7 @@ async def whois(ctx, musr: typing.Union[discord.Member, str] = None):
     
     # Embed
     if(isinstance(musr, discord.Member)):
-        embed=discord.Embed(title="WHOIS", description=f"<@{musr}>", color=0x469eff)
+        embed=discord.Embed(title="WHOIS", description=f"<@{musr.id}>", color=0x469eff)
         embed.set_author(name="Pluto's Shitty Mod Bot")
         embed.set_thumbnail(url=f"{str(musr.avatar_url)}")
         embed.add_field(name="Username", value=f"{musr}", inline=True)
@@ -288,6 +293,7 @@ async def whois(ctx, musr: typing.Union[discord.Member, str] = None):
         if(not inDM(ctx)):
             embed.add_field(name="Nickname", value=f"{musr.nick}", inline=True)
             embed.add_field(name="Joined", value=f"{str(musr.joined_at)}", inline=True)
+
         embed.set_footer(text=f"User ID: {musr.id}")
     else:
         embed=discord.Embed(title="WHOIS", description=f"<@{musr}>", color=0x469eff)
@@ -297,22 +303,27 @@ async def whois(ctx, musr: typing.Union[discord.Member, str] = None):
 
     # Check if the author has elevated permissions
     getter = functools.partial(discord.utils.get, ctx.author.roles)
-    if any(getter(id=item) is not None if isinstance(item, int) else getter(name=item) is not None for item in elevatedperms.elevated):
+    if(any(getter(id=item) is not None if isinstance(item, int) else getter(name=item) is not None for item in elevatedperms.elevated)):
 
         # Get all infractions and convert it into a markdown format
         if(isinstance(musr, str)):
             # if the argument provided was not automatically converted to discord.Member, try to parse it to an id (int) 
             try:
-                md = markdown.infr_data_to_md(db.GetAllInfractions(int(musr)))
+                md1 = markdown.infr_data_to_md(db.GetAllInfractions(int(musr)))
+                md2 = markdown.alt_data_to_md(db.GetAlts(int(musr)))
             # Return if casting failed
             except ValueError:
                 await ctx.send("🚫 Couldn't parse user properly")
                 return
         else:
-            md = markdown.infr_data_to_md(db.GetAllInfractions(musr.id))
+            md1 = markdown.infr_data_to_md(db.GetAllInfractions(musr.id))
+            md2 = markdown.alt_data_to_md(bot, db.GetAlts(musr.id))
 
         # set the embed
-        embed.add_field(name="Infractions", value=f"{md}", inline=False)
+        embed.add_field(name="Infractions", value=f"{md1}", inline=False)
+        embed.add_field(name="Alt info", value=f"{md2}", inline=False)
+
+
     
     
     await ctx.send(embed=embed)
@@ -342,7 +353,7 @@ async def on_member_ban(guild, user):
     
 @bot.command()
 @commands.has_any_role(*elevatedperms.elevated)
-async def infraction(ctx, id:str, cmd:str):
+async def infraction(ctx, id:str, *, cmd:str = None):
     
     # Get infraction info from the database
     res = db.GetInfraction(id)
@@ -376,9 +387,40 @@ async def infraction(ctx, id:str, cmd:str):
     embed.add_field(name="Reason", value=f"{case[3]}", inline=True)
     embed.add_field(name="Recorded by", value=f"<@{int(case[4])}>", inline=True)
     embed.add_field(name="Timestamp", value=f"{time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(int(case[5])))}", inline=True)
+    if(case[6] != None):
+        u = discord.utils.find(lambda u: u.id == int(case[6]), bot.get_guild(config.guild).members)
+        if(u != None):
+            embed.add_field(name="Alt account", value=f"{u.mention}", inline=True)
+        else:
+            embed.add_field(name="Alt account", value=f"{case[6]}", inline=True)
 
     await ctx.send(embed=embed)
     del embed
+
+
+@bot.command()
+async def linkacc(ctx, mainacc: typing.Union[discord.User, str], altacc: typing.Union[discord.User, str]):
+    if(isinstance(mainacc, str)):
+        try:
+            mainacc = int(mainacc)
+        except ValueError:
+            # Casting failed
+            return 
+    else:
+        mainacc = mainacc.id
+    if(isinstance(altacc, str)):
+        try:
+            altacc = int(altacc)
+        except ValueError:
+            # Casting failed
+            return 
+    else:
+        altacc = altacc.id
+    
+    db.LinkAlt(mainacc, altacc)
+        
+
+
 
 # This event is risen when a member joins the server
 @bot.event
@@ -421,24 +463,6 @@ async def on_member_update(before, after):
     
         **After**:
         {after.nick}""", to_channel=True, footertxt=f"Message ID: {after.id}; Created at: {before.created_at}", color=COLOR.INFO.value)
-    
-    # Get a list of the assigned and removed roles
-    #newassign = [role for role in after.roles if not after.roles in before.roles]
-    #rmvassign = [role for role in before.roles if not before.roles in after.roles]    
-    
-    # For each newly assigned role, log it
-#    if(len(newassign) > 0):
-#        for role in newassign:
-#            # Ignore '@everyone' role
-#            if(role == before.guild.default_role):
-#                continue
-#            await log._log(bot, f"Role `{role.name}` assigned to {before}", to_channel=True, footertxt=f"User ID: {after.id}", color=COLOR.INFO.value)
-    # Do the same for the removed roles
-#    if(len(rmvassign) > 0):
-#        for role in rmvassign:
-#            if(role == before.guild.default_role):
-#                continue
-#            await log._log(bot, f"Role `{role.name}` removed from {before}", to_channel=True, footertxt=f"User ID: {after.id}", color=COLOR.INFO.value)
                
     
 # This event is risen when a member left the server (this can be the cause of kicking too!)
@@ -476,8 +500,6 @@ async def on_message_edit(before, after):
     
     **After**:
     {after.content}""", to_channel=True, to_log = False, footertxt=f"Message ID: {after.id}; Created at: {before.created_at}", color=COLOR.INFO.value, expiry = config.sensitive_expiry)
-
-# this is used for spam prevention
 
 @bot.event
 async def on_command_error(context, exception):

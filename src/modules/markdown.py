@@ -1,6 +1,9 @@
 from models import measure
+from collections import namedtuple
 import time
 import datetime
+import discord
+import config
 
 def infr_data_to_md(sqlres:list):
     """Generates a markdown table from infraction data
@@ -15,11 +18,51 @@ def infr_data_to_md(sqlres:list):
     # Check if there are any infractions
     if(len(sqlres) < 1):
         md = "No infractions"
+        return md 
 
     for inf in sqlres:
         md = f"""{md}
         `{inf[0][:8]}` • **{str(measure.Measure(inf[2]))}** • {time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(int(inf[5])))} • {inf[3]}
         """
+    return md
+
+def alt_string_find(bot, alts:tuple):
+    y = []
+    for alt in alts:
+        try:
+            id = int(alt)
+        except ValueError:
+            continue
+        u = discord.utils.find(lambda u: u.id == id, bot.get_guild(config.guild).members)
+        if(u == None):
+            y.append(id)
+        else:
+            y.append(u)
+    return tuple(y)
+        
+def alt_data_to_md(bot, sqlres:namedtuple):
+    """Generates markdown for alt accounts
+    Required parameters: 
+    - bot:discord.Client = Bot used for ID to member conversion
+    - sql_result:tuple = SQL Result (from db.GetAlts)
+
+    Returns:
+    markdown:str = Markdown string
+    """
+
+    md = ""
+
+    if(sqlres == None):
+        md = "No alt accounts linked"
+
+    else:
+        if(sqlres.mainflag):
+            md = f"Main account is {sqlres.id}"
+        else:
+            acc = alt_string_find(bot, sqlres.id)
+            for a in acc:
+                md = f"""{md}
+                - {a}"""
     return md
 
 timeletters = ('s', 'm', 'h', 'd')
@@ -33,7 +76,7 @@ def add_time_from_str(string:str = "", btime:int = -1, subtract = False):
         decrement: Subtracts the time instead of adding
 
         Returns:
-        Epoch (int) of the new time
+        newtime:int
 
         Formatting:
         <duration><s/m/h/d>
@@ -96,6 +139,13 @@ def add_time_from_str(string:str = "", btime:int = -1, subtract = False):
         return -1
         
 def duration_to_text(string:str):
+    """Converts duration formatting to human readable text
+    
+    Required parameters: 
+    - string:str = String to convert
+    
+    Returns:
+    Converted string"""
     t = string
     t = t.replace('s', "s ").replace('m', "min ").replace('h', "h ").replace('d', " days ")
     return t
