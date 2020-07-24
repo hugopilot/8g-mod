@@ -145,3 +145,4 @@ dmypy.json
 .pyre/
 /src/config.py
 /data/data.db
+/data/main.db-journal
