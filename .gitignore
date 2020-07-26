@@ -110,6 +110,9 @@ __pypackages__/
 .vs/
 .vscode/
 
+# PyCharm
+.idea/
+
 # Celery stuff
 celerybeat-schedule
 celerybeat.pid
