@@ -10,4 +10,4 @@ Features:
 Go to [READING.md](READING.md)
 
 # Running this bot yourself for your own server
-Go to [HOSTING.md](HOSTING.MD)
+Go to [HOSTING.md](HOSTING.md)
