@@ -48,7 +48,7 @@ class MinuteUpdate(commands.Cog):
             mres = await update.check_mutes()
             # unmute normals
             for case in mres[0]:
-                db.remove_mute_member(case)
+                db.RemoveMuteMember(case)
                 u = guild.get_member(case)
                 if u is None:
                     await log.log(self.bot, "Cannot lift mute, member probably left", to_channel=True,
@@ -59,7 +59,7 @@ class MinuteUpdate(commands.Cog):
                                   footertxt=f"User ID: {case}", color=COLOR.ATTENTION_OK.value)
             # unmute errors
             for case in mres[1]:
-                db.remove_mute_member(case)
+                db.RemoveMuteMember(case)
                 u = guild.get_member(case)
                 if u is None:
                     await log.log(self.bot, "Cannot lift mute, member probably left", to_channel=True,
@@ -112,7 +112,7 @@ async def ban(ctx, musr: typing.Union[discord.Member, str] = None, *,
             return
 
         # Put it in the database
-        db.add_infraction(musr.id, Measure.BAN, reason, ctx.author.id)
+        db.AddInfraction(musr.id, Measure.BAN, reason, ctx.author.id)
 
         await musr.send(f"You were banned from {ctx.guild} • {reason}")
 
@@ -148,7 +148,7 @@ async def kick(ctx, musr: typing.Union[discord.Member, str] = None, *, reason: s
             return
 
         # Put it in the database
-        db.add_infraction(musr.id, Measure.KICK, reason, ctx.author.id)
+        db.AddInfraction(musr.id, Measure.KICK, reason, ctx.author.id)
 
         # Add it to the recentrmv list
         bot.recentrmv.append(musr.id)
@@ -178,7 +178,7 @@ async def mute(ctx, musr: typing.Union[discord.Member, str] = None, duration: st
         if ctx.author == musr:
             return
 
-        alts = db.get_alts(musr.id)
+        alts = db.GetAlts(musr.id)
 
         # Fail if user is invincible:
         if len([r for r in musr.roles if r.id in config.invincibleroles]) > 0:
@@ -186,7 +186,7 @@ async def mute(ctx, musr: typing.Union[discord.Member, str] = None, duration: st
             return
 
         # Put it in the database
-        db.add_infraction(musr.id, Measure.MUTE, reason, ctx.author.id)
+        db.AddInfraction(musr.id, Measure.MUTE, reason, ctx.author.id)
 
         # Try to get the role
         mr = ctx.guild.get_role(config.mutedrole)
@@ -197,7 +197,7 @@ async def mute(ctx, musr: typing.Union[discord.Member, str] = None, duration: st
 
         try:
             ti = markdown.add_time_from_str(duration)
-            db.set_mute_member(musr.id, ti)
+            db.SetMuteMember(musr.id, ti)
         except TypeError:
             await ctx.send("Wrong formatting used!")
             return
@@ -226,12 +226,12 @@ async def unmute(ctx, musr: typing.Union[discord.Member, str]):
         if ctx.author == musr:
             return
         # Check if muted
-        if not db.check_muted(musr.id):
+        if not db.CheckMuted(musr.id):
             await ctx.send("🚫 {musr} is already unmuted!")
 
         mutedr = ctx.guild.get_role(config.mutedrole)
 
-        db.remove_mute_member(musr.id)
+        db.RemoveMuteMember(musr.id)
         await musr.remove_roles(mutedr, reason=f'Lifted by {ctx.author}')
         await log.log(bot, f"Mute on {musr} lifted by {ctx.author}.", to_channel=True, footertxt=f"User ID: {musr.id}",
                       color=COLOR.ATTENTION_OK.value)
@@ -259,7 +259,7 @@ async def warn(ctx, musr: typing.Union[discord.Member, str] = None, *, reason: s
             return
 
         # Put it in the database
-        db.add_infraction(musr.id, Measure.WARN, reason, ctx.author.id)
+        db.AddInfraction(musr.id, Measure.WARN, reason, ctx.author.id)
 
         # Log it
         await log.log(bot, f"{musr.mention} was warned by {ctx.author.mention} with reason: {reason}", to_channel=True,
@@ -312,15 +312,15 @@ async def whois(ctx, musr: typing.Union[discord.Member, str] = None):
         if isinstance(musr, str):
             # if the argument provided was not automatically converted to discord.Member, try to parse it to an id (int) 
             try:
-                md1 = markdown.infr_data_to_md(db.get_all_infractions(int(musr)))
-                md2 = markdown.alt_data_to_md(db.get_alts(int(musr)))
+                md1 = markdown.infr_data_to_md(db.GetAllInfractions(int(musr)))
+                md2 = markdown.alt_data_to_md(db.GetAlts(int(musr)))
             # Return if casting failed
             except ValueError:
                 await ctx.send("🚫 Couldn't parse user properly")
                 return
         else:
-            md1 = markdown.infr_data_to_md(db.get_all_infractions(musr.id))
-            md2 = markdown.alt_data_to_md(bot, db.get_alts(musr.id))
+            md1 = markdown.infr_data_to_md(db.GetAllInfractions(musr.id))
+            md2 = markdown.alt_data_to_md(bot, db.GetAlts(musr.id))
 
         # set the embed
         embed.add_field(name="Infractions", value=f"{md1}", inline=False)
@@ -348,7 +348,7 @@ async def on_member_ban(guild, user):
     reason = ban.reason
 
     # Put it in the database
-    db.add_infraction(user.id, Measure.BAN, reason, 0)
+    db.AddInfraction(user.id, Measure.BAN, reason, 0)
 
     await log.log(bot, f"{user} was banned with reason: {reason}", to_channel=True, footertxt=f"User ID: {user.id}",
                   color=COLOR.ATTENTION_BAD.value)
@@ -358,7 +358,7 @@ async def on_member_ban(guild, user):
 @commands.has_any_role(*elevatedperms.elevated)
 async def infraction(ctx, id: str, *, cmd: str = None):
     # Get infraction info from the database
-    res = db.get_infraction(id)
+    res = db.GetInfraction(id)
 
     # Error out if nothing is found
     if len(res) < 1:
@@ -370,7 +370,7 @@ async def infraction(ctx, id: str, *, cmd: str = None):
         # If just one result is found, delete it
         if len(res) == 1:
             # Delete from the database
-            db.delete_infraction(res[0][0])
+            db.DeleteInfraction(res[0][0])
 
             # Give feedback; log it and exit
             await ctx.send(f"✅ Infraction {res[0][0]} deleted!")
@@ -421,7 +421,7 @@ async def linkacc(ctx, mainacc: typing.Union[discord.User, str], altacc: typing.
     else:
         altacc = altacc.id
 
-    db.link_alt(mainacc, altacc)
+    db.LinkAlt(mainacc, altacc)
 
 
 # This event is risen when a member joins the server
@@ -429,7 +429,7 @@ async def linkacc(ctx, mainacc: typing.Union[discord.User, str], altacc: typing.
 async def on_member_join(member):
     await log.log(bot, f"{member} joined the server!", to_channel=True, footertxt=f"User ID: {member.id}",
                   color=COLOR.ATTENTION_OK.value)
-    if db.check_muted(member.id):
+    if db.CheckMuted(member.id):
         # Try to get the role
         mr = member.guild.get_role(config.mutedrole)
 

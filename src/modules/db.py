@@ -67,7 +67,7 @@ def _sql_get_muted():
     return False
 
 
-def check_muted(userID: int):
+def CheckMuted(userID: int):
     """Check if a user is muted
     Required parameters:
     - userID = Discord User ID to check
@@ -83,7 +83,7 @@ def check_muted(userID: int):
     return False
 
 
-def add_infraction(userID: int, measuretype: measure.Measure, reason: str, author: int):
+def AddInfraction(userID: int, measuretype: measure.Measure, reason: str, author: int):
     """Adds a infraction to the database
     
        Required parameters:
@@ -93,7 +93,7 @@ def add_infraction(userID: int, measuretype: measure.Measure, reason: str, autho
        - author:int = Discord ID of the user that called the command
     """
     # Check if alts are linked
-    ar = get_alts(userID)
+    ar = GetAlts(userID)
 
     # Don't trust user input
     usre = _sql_escape_string(reason)
@@ -121,7 +121,7 @@ def add_infraction(userID: int, measuretype: measure.Measure, reason: str, autho
     close_con(c)
 
 
-def get_all_infractions(userID: int):
+def GetAllInfractions(userID: int):
     """Gets all infractions from a user from the database
         
         Required parameters:
@@ -143,7 +143,7 @@ def get_all_infractions(userID: int):
     return r
 
 
-def get_infraction(id: str):
+def GetInfraction(id: str):
     """Finds a infraction by ID
     
         Required parameters:
@@ -168,7 +168,7 @@ def get_infraction(id: str):
     return r
 
 
-def set_mute_member(userID: int, mutelift: int):
+def SetMuteMember(userID: int, mutelift: int):
     """Mutes a member in the database
     
     Required parameters:
@@ -203,7 +203,7 @@ def set_mute_member(userID: int, mutelift: int):
         close_con(c)
 
 
-def remove_mute_member(userID: int):
+def RemoveMuteMember(userID: int):
     """Unmutes a member in the database
     
     Required parameters:
@@ -222,7 +222,7 @@ def remove_mute_member(userID: int):
     close_con(c)
 
 
-def delete_infraction(guid: str):
+def DeleteInfraction(guid: str):
     """Deletes an infraction from the database
 
     Required parameters:
@@ -240,7 +240,7 @@ def delete_infraction(guid: str):
     close_con(c)
 
 
-def link_alt(mainuser: int, altuser: int):
+def LinkAlt(mainuser: int, altuser: int):
     # Connect to database
     c = connect()
     cu = c.cursor();
@@ -273,7 +273,7 @@ def link_alt(mainuser: int, altuser: int):
         return
 
 
-def get_alts(user: int):
+def GetAlts(user: int):
     """Returns all linked alt discord id's or returns the main discord id (set with the main flag)
     
     Required parameters:
