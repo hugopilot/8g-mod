@@ -310,7 +310,7 @@ async def whois(ctx, musr: typing.Union[discord.Member, str] = None):
             # if the argument provided was not automatically converted to discord.Member, try to parse it to an id (int) 
             try:
                 md1 = markdown.infr_data_to_md(db.GetAllInfractions(int(musr)))
-                md2 = markdown.alt_data_to_md(db.GetAlts(int(musr)))
+                md2 = markdown.alt_data_to_md(bot, db.GetAlts(int(musr)))
             # Return if casting failed
             except ValueError:
                 await ctx.send("🚫 Couldn't parse user properly")
