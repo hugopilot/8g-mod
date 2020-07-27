@@ -3,8 +3,7 @@ import config
 import datetime
 
 
-async def log(bot, message, *, to_channel: bool = False, to_log: bool = True, footertxt=None, color=0xFFFFFF,
-              expiry=None):
+async def log(bot, message, *, to_channel: bool = False, to_log: bool = True, footertxt=None, color=0xFFFFFF, expiry=None):
     """This function is used to log events from the bot in the console, a logfile and log channel
     
     Required parameters:

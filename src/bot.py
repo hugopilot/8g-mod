@@ -50,24 +50,21 @@ class MinuteUpdate(commands.Cog):
             for case in mres[0]:
                 db.RemoveMuteMember(case)
                 u = guild.get_member(case)
+                u = guild.get_member(case)
                 if u is None:
-                    await log.log(self.bot, "Cannot lift mute, member probably left", to_channel=True,
-                                  footertxt=f"User ID: {case}", color=COLOR.WARN.value)
+                    await log.log(self.bot, "Cannot lift mute, member probably left", to_channel=True, footertxt=f"User ID: {case}", color=COLOR.WARN.value)
                 else:
                     await u.remove_roles(mutedr, reason='Automatically lifted (timeout) by bot')
-                    await log.log(self.bot, f"Mute on {u} lifted (timeout).", to_channel=True,
-                                  footertxt=f"User ID: {case}", color=COLOR.ATTENTION_OK.value)
+                    await log.log(self.bot, f"Mute on {u} lifted (timeout).", to_channel=True, footertxt=f"User ID: {case}", color=COLOR.ATTENTION_OK.value)
             # unmute errors
             for case in mres[1]:
                 db.RemoveMuteMember(case)
                 u = guild.get_member(case)
                 if u is None:
-                    await log.log(self.bot, "Cannot lift mute, member probably left", to_channel=True,
-                                  footertxt=f"User ID: {case}", color=COLOR.WARN.value)
+                    await log.log(self.bot, "Cannot lift mute, member probably left", to_channel=True, footertxt=f"User ID: {case}", color=COLOR.WARN.value)
                 else:
                     u.remove_roles(mutedr, reason='Automatically lifted (NULL ERROR) by bot')
-                    await log.log(self.bot, f"Mute on {u} lifted (NULL ERROR).", to_channel=True,
-                                  footertxt=f"User ID: {case}", color=COLOR.ATTENTION_WARN.value)
+                    await log.log(self.bot, f"Mute on {u} lifted (NULL ERROR).", to_channel=True, footertxt=f"User ID: {case}", color=COLOR.ATTENTION_WARN.value)
 
         except Exception:
             pass
@@ -98,8 +95,7 @@ def in_dm(ctx):
 @bot.command()
 @commands.has_any_role(*elevatedperms.elevated)
 # The function name is the name of the command, unless specified.  
-async def ban(ctx, musr: typing.Union[discord.Member, str] = None, *,
-              reason: str = "No reason supplied; Pluto Mod Bot"):
+async def ban(ctx, musr: typing.Union[discord.Member, str] = None, *, reason: str = "No reason supplied; Pluto Mod Bot"):
     # Check if the musr object was properly parsed as a User object
     if isinstance(musr, discord.Member):
         # ignore if self
@@ -108,8 +104,7 @@ async def ban(ctx, musr: typing.Union[discord.Member, str] = None, *,
 
         # Fail if user is invincible
         if len([r for r in musr.roles if r.id in config.invincibleroles]) > 0:
-            await ctx.send("_🚫 You can't ban invincible users_")
-            return
+            return await ctx.send("_🚫 You can't ban invincible users_")
 
         # Put it in the database
         db.AddInfraction(musr.id, Measure.BAN, reason, ctx.author.id)
@@ -123,8 +118,7 @@ async def ban(ctx, musr: typing.Union[discord.Member, str] = None, *,
         await ctx.guild.ban(musr, reason=reason)
 
         # Log it
-        await log.log(bot, f"{musr} was banned by {ctx.author} with reason: {reason}", to_channel=True,
-                      footertxt=f"User ID: {musr.id}", color=COLOR.ATTENTION_BAD.value)
+        await log.log(bot, f"{musr} was banned by {ctx.author} with reason: {reason}", to_channel=True, footertxt=f"User ID: {musr.id}", color=COLOR.ATTENTION_BAD.value)
 
         # Send feedback
         await ctx.send(f"✅ Banned {musr} | {reason}")
@@ -144,8 +138,7 @@ async def kick(ctx, musr: typing.Union[discord.Member, str] = None, *, reason: s
 
         # Fail if user is invincible
         if len([r for r in musr.roles if r.id in config.invincibleroles]) > 0:
-            await ctx.send("_🚫 You can't kick invincible users_")
-            return
+            return await ctx.send("_🚫 You can't kick invincible users_")
 
         # Put it in the database
         db.AddInfraction(musr.id, Measure.KICK, reason, ctx.author.id)
@@ -159,8 +152,7 @@ async def kick(ctx, musr: typing.Union[discord.Member, str] = None, *, reason: s
         await ctx.guild.kick(musr, reason=reason)
 
         # Log it
-        await log.log(bot, f"{musr} was kicked by {ctx.author} with reason: {reason}", to_channel=True,
-                      footertxt=f"User ID: {musr.id}", color=COLOR.ATTENTION_BAD.value)
+        await log.log(bot, f"{musr} was kicked by {ctx.author} with reason: {reason}", to_channel=True, footertxt=f"User ID: {musr.id}", color=COLOR.ATTENTION_BAD.value)
 
         # Send feedback
         await ctx.send(f"✅ {musr} was kicked | {reason}")
@@ -170,8 +162,7 @@ async def kick(ctx, musr: typing.Union[discord.Member, str] = None, *, reason: s
 
 @bot.command()
 @commands.has_any_role(*elevatedperms.elevated)
-async def mute(ctx, musr: typing.Union[discord.Member, str] = None, duration: str = "30m", *,
-               reason: str = "No reason supplied"):
+async def mute(ctx, musr: typing.Union[discord.Member, str] = None, duration: str = "30m", *, reason: str = "No reason supplied"):
     # Check if the musr object was properly parsed as a User object
     if isinstance(musr, discord.Member):
         # ignore if self
@@ -182,8 +173,7 @@ async def mute(ctx, musr: typing.Union[discord.Member, str] = None, duration: st
 
         # Fail if user is invincible:
         if len([r for r in musr.roles if r.id in config.invincibleroles]) > 0:
-            await ctx.send("_🚫 You can't mute invincible users_")
-            return
+            return await ctx.send("_🚫 You can't mute invincible users_")
 
         # Put it in the database
         db.AddInfraction(musr.id, Measure.MUTE, reason, ctx.author.id)
@@ -199,8 +189,7 @@ async def mute(ctx, musr: typing.Union[discord.Member, str] = None, duration: st
             ti = markdown.add_time_from_str(duration)
             db.SetMuteMember(musr.id, ti)
         except TypeError:
-            await ctx.send("Wrong formatting used!")
-            return
+            return await ctx.send("Wrong formatting used!")
 
         # Assign the muted role
         await musr.add_roles(mr, reason=reason)
@@ -208,8 +197,7 @@ async def mute(ctx, musr: typing.Union[discord.Member, str] = None, duration: st
         await musr.send(f"You were muted in {ctx.guild} for {markdown.duration_to_text(duration)} • {reason}")
 
         # Log it
-        await log.log(bot, f"{musr} was muted by {ctx.author} with reason: {reason}", to_channel=True,
-                      footertxt=f"User ID: {musr.id}", color=COLOR.ATTENTION_BAD.value)
+        await log.log(bot, f"{musr} was muted by {ctx.author} with reason: {reason}", to_channel=True, footertxt=f"User ID: {musr.id}", color=COLOR.ATTENTION_BAD.value)
 
         # Send feedback
         await ctx.send(f"✅ {musr} was muted for {markdown.duration_to_text(duration)} | {reason}")
@@ -233,8 +221,7 @@ async def unmute(ctx, musr: typing.Union[discord.Member, str]):
 
         db.RemoveMuteMember(musr.id)
         await musr.remove_roles(mutedr, reason=f'Lifted by {ctx.author}')
-        await log.log(bot, f"Mute on {musr} lifted by {ctx.author}.", to_channel=True, footertxt=f"User ID: {musr.id}",
-                      color=COLOR.ATTENTION_OK.value)
+        await log.log(bot, f"Mute on {musr} lifted by {ctx.author}.", to_channel=True, footertxt=f"User ID: {musr.id}", color=COLOR.ATTENTION_OK.value)
         await ctx.send(f"✅ {musr} was unmuted!")
     else:
         await ctx.send("🚫 Couldn't parse user properly")
@@ -255,15 +242,13 @@ async def warn(ctx, musr: typing.Union[discord.Member, str] = None, *, reason: s
 
         # Fail if user is invincible
         if len([r for r in musr.roles if r.id in config.invincibleroles]) > 0:
-            await ctx.send("_🚫 You can't warn invincible users_")
-            return
+            return await ctx.send("_🚫 You can't warn invincible users_")
 
         # Put it in the database
         db.AddInfraction(musr.id, Measure.WARN, reason, ctx.author.id)
 
         # Log it
-        await log.log(bot, f"{musr.mention} was warned by {ctx.author.mention} with reason: {reason}", to_channel=True,
-                      footertxt=f"User ID: {musr.id}", color=COLOR.ATTENTION_WARN.value)
+        await log.log(bot, f"{musr.mention} was warned by {ctx.author.mention} with reason: {reason}", to_channel=True, footertxt=f"User ID: {musr.id}", color=COLOR.ATTENTION_WARN.value)
 
         # Send feedback
         await ctx.send(f"✅ {musr} was warned | {reason}")
@@ -278,8 +263,7 @@ async def purge(ctx, amount: int = 50):
     await ctx.channel.purge(limit=amount)
 
     # Log it
-    await log.log(bot, f"{ctx.author} used purge command in {ctx.channel.name}, deleted {amount} messages",
-                  to_channel=True, footertxt=f"User ID: {ctx.author.id}", color=COLOR.ATTENTION_INFO.value)
+    await log.log(bot, f"{ctx.author} used purge command in {ctx.channel.name}, deleted {amount} messages", to_channel=True, footertxt=f"User ID: {ctx.author.id}", color=COLOR.ATTENTION_INFO.value)
 
 
 # endregion
@@ -316,8 +300,7 @@ async def whois(ctx, musr: typing.Union[discord.Member, str] = None):
                 md2 = markdown.alt_data_to_md(db.GetAlts(int(musr)))
             # Return if casting failed
             except ValueError:
-                await ctx.send("🚫 Couldn't parse user properly")
-                return
+                return await ctx.send("🚫 Couldn't parse user properly")
         else:
             md1 = markdown.infr_data_to_md(db.GetAllInfractions(musr.id))
             md2 = markdown.alt_data_to_md(bot, db.GetAlts(musr.id))
@@ -350,8 +333,7 @@ async def on_member_ban(guild, user):
     # Put it in the database
     db.AddInfraction(user.id, Measure.BAN, reason, 0)
 
-    await log.log(bot, f"{user} was banned with reason: {reason}", to_channel=True, footertxt=f"User ID: {user.id}",
-                  color=COLOR.ATTENTION_BAD.value)
+    await log.log(bot, f"{user} was banned with reason: {reason}", to_channel=True, footertxt=f"User ID: {user.id}", color=COLOR.ATTENTION_BAD.value)
 
 
 @bot.command()
@@ -362,8 +344,7 @@ async def infraction(ctx, id: str, *, cmd: str = None):
 
     # Error out if nothing is found
     if len(res) < 1:
-        await ctx.send("🚫 Didn't find any infractions")
-        return
+        return await ctx.send("🚫 Didn't find any infractions")
 
     # if delete argument was supplied with the command 
     if cmd == 'delete':
@@ -374,11 +355,9 @@ async def infraction(ctx, id: str, *, cmd: str = None):
 
             # Give feedback; log it and exit
             await ctx.send(f"✅ Infraction {res[0][0]} deleted!")
-            await log.log(bot, f"{ctx.author.mention} deleted infraction {res[0][0]}", to_channel=True,
-                          footertxt=f'User ID: {ctx.author.id}', color=COLOR.ATTENTION_INFO.value)
-            return
+            return await log.log(bot, f"{ctx.author.mention} deleted infraction {res[0][0]}", to_channel=True, footertxt=f'User ID: {ctx.author.id}', color=COLOR.ATTENTION_INFO.value)
 
-            # Create an embed, fill it with data and send it!
+    # Create an embed, fill it with data and send it!
     embed = discord.Embed(title="Infractions", description=f"Found {len(res)} result(s). Showing first", color=0x469EFF)
     embed.set_author(name="Pluto's Shitty Mod Bot")
     case = res[0]
@@ -389,8 +368,7 @@ async def infraction(ctx, id: str, *, cmd: str = None):
     embed.add_field(name="Type", value=f"{str(Measure(case[2]))}", inline=True)
     embed.add_field(name="Reason", value=f"{case[3]}", inline=True)
     embed.add_field(name="Recorded by", value=f"<@{int(case[4])}>", inline=True)
-    embed.add_field(name="Timestamp", value=f"{time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(int(case[5])))}",
-                    inline=True)
+    embed.add_field(name="Timestamp", value=f"{time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(int(case[5])))}", inline=True)
     if case[6] is not None:
         u = discord.utils.find(lambda u: u.id == int(case[6]), bot.get_guild(config.guild).members)
         if u is not None:
@@ -427,8 +405,7 @@ async def linkacc(ctx, mainacc: typing.Union[discord.User, str], altacc: typing.
 # This event is risen when a member joins the server
 @bot.event
 async def on_member_join(member):
-    await log.log(bot, f"{member} joined the server!", to_channel=True, footertxt=f"User ID: {member.id}",
-                  color=COLOR.ATTENTION_OK.value)
+    await log.log(bot, f"{member} joined the server!", to_channel=True, footertxt=f"User ID: {member.id}", color=COLOR.ATTENTION_OK.value)
     if db.CheckMuted(member.id):
         # Try to get the role
         mr = member.guild.get_role(config.mutedrole)
@@ -439,8 +416,7 @@ async def on_member_join(member):
         else:
             # Assign the muted role
             await member.add_roles(mr, reason="Auto-reassigned by Pluto's Shitty Mod Bot")
-            await log.log(bot, f"Found mute on {member}, reassigned role!", to_channel=True,
-                          footertxt=f"User ID: {member.id}", color=COLOR.BAD.value)
+            await log.log(bot, f"Found mute on {member}, reassigned role!", to_channel=True, footertxt=f"User ID: {member.id}", color=COLOR.BAD.value)
 
     # Assign roles defined in config.autoroles
     for r in config.autoroles:
@@ -449,8 +425,7 @@ async def on_member_join(member):
         if rq is None:
             raise errors.RoleNotFoundError("{r} could not be found!", "Update ID in config file")
         await member.add_roles(rq, reason="Auto-assigned by Pluto's Shitty Mod Bot")
-        await log.log(bot, f"Auto assigned `{rq}` to {member}", to_channel=True, footertxt=f"User ID: {member.id}",
-                      color=COLOR.INFO.value)
+        await log.log(bot, f"Auto assigned `{rq}` to {member}", to_channel=True, footertxt=f"User ID: {member.id}", color=COLOR.INFO.value)
 
 
 # Logs member updates
@@ -467,15 +442,13 @@ async def on_member_update(before, after):
         {before.nick}
     
         **After**:
-        {after.nick}""", to_channel=True, footertxt=f"Message ID: {after.id}; Created at: {before.created_at}",
-                      color=COLOR.INFO.value)
+        {after.nick}""", to_channel=True, footertxt=f"Message ID: {after.id}; Created at: {before.created_at}", color=COLOR.INFO.value)
 
 
 # This event is risen when a member left the server (this can be the cause of kicking too!)
 @bot.event
 async def on_member_remove(member):
-    await log.log(bot, f"Member {member} left", to_channel=True, footertxt=f"User ID: {member.id}",
-                  color=COLOR.ATTENTION_BAD.value)
+    await log.log(bot, f"Member {member} left", to_channel=True, footertxt=f"User ID: {member.id}", color=COLOR.ATTENTION_BAD.value)
 
 
 @bot.event
@@ -485,23 +458,14 @@ async def on_message_delete(message):
         return
     if spam.deleting:
         return
-    al = message.guild.audit_logs(limit=3, action=discord.AuditLogAction.message_delete,
-                                  after=datetime.datetime.utcnow() - datetime.timedelta(seconds=10))
+    al = message.guild.audit_logs(limit=3, action=discord.AuditLogAction.message_delete, after=datetime.datetime.utcnow() - datetime.timedelta(seconds=10))
     re = await al.get(target=message.author)
     if re is None or re.user is None:
-        await log.log(bot,
-                      f"**Message from {message.author.mention} deleted in <#{message.channel.id}>**:\n{message.content}",
-                      to_channel=True, to_log=False,
-                      footertxt=f"Message ID: {message.id}; Created at: {message.created_at}", color=COLOR.BAD.value,
-                      expiry=config.sensitive_expiry)
+        await log.log(bot, f"**Message from {message.author.mention} deleted in <#{message.channel.id}>**:\n{message.content}", to_channel=True, to_log=False, footertxt=f"Message ID: {message.id}; Created at: {message.created_at}", color=COLOR.BAD.value, expiry=config.sensitive_expiry)
     elif re.user == bot.user:
         return
     else:
-        await log.log(bot,
-                      f"**Message from {message.author.mention} deleted in <#{message.channel.id}> by {re.user.mention}**:\n{message.content}",
-                      to_channel=True, to_log=False,
-                      footertxt=f"Message ID: {message.id}; Created at: {message.created_at}", color=COLOR.BAD.value,
-                      expiry=config.sensitive_expiry)
+        await log.log(bot, f"**Message from {message.author.mention} deleted in <#{message.channel.id}> by {re.user.mention}**:\n{message.content}", to_channel=True, to_log=False, footertxt=f"Message ID: {message.id}; Created at: {message.created_at}", color=COLOR.BAD.value, expiry=config.sensitive_expiry)
 
 
 @bot.event
@@ -517,9 +481,7 @@ async def on_message_edit(before, after):
     {before.content}
     
     **After**:
-    {after.content}""", to_channel=True, to_log=False,
-                  footertxt=f"Message ID: {after.id}; Created at: {before.created_at}", color=COLOR.INFO.value,
-                  expiry=config.sensitive_expiry)
+    {after.content}""", to_channel=True, to_log=False, footertxt=f"Message ID: {after.id}; Created at: {before.created_at}", color=COLOR.INFO.value, expiry=config.sensitive_expiry)
 
 
 @bot.event
@@ -550,8 +512,7 @@ async def on_command_error(context, exception):
     if context.guild is None:
         m = f"{m}\nIN DM, thanks to {context.author} ({context.author.id})\n\n"
     else:
-        m = f"{m}\nIn {context.guild} ({context.guild.id}), thanks to {context.author} ({context.author.id})\n\n".format(
-            m, context.guild, context.guild.id, context.author, context.author.id)
+        m = f"{m}\nIn {context.guild} ({context.guild.id}), thanks to {context.author} ({context.author.id})\n\n".format(m, context.guild, context.guild.id, context.author, context.author.id)
     log.errlog(m)
 
     await context.send("Ohoh, something went wrong. Error has been logged")
@@ -559,8 +520,7 @@ async def on_command_error(context, exception):
 
 @bot.command()
 async def help(ctx):
-    await ctx.author.send(
-        "**Help yourself!** Source can be found here: https://github.com/hugopilot/pluto-mod (nah jk but we're too lazy to add help cuz bot is not done yet)")
+    await ctx.author.send("**Help yourself!** Source can be found here: https://github.com/hugopilot/pluto-mod (nah jk but we're too lazy to add help cuz bot is not done yet)")
 
 
 @bot.command()
