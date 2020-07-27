@@ -1,5 +1,5 @@
-import enum
 from enum import Enum
+
 
 class COLOR(Enum):
     ATTENTION_BAD = 0xFF0000
@@ -10,4 +10,3 @@ class COLOR(Enum):
     OK = 0x00C800
     INFO = 0x00B1CC
     WARN = 0xD3A700
-
