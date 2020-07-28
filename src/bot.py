@@ -137,8 +137,9 @@ async def kick(ctx, musr: typing.Union[discord.Member, str] = None, *, reason: s
             return
 
         # Fail if user is invincible
-        if len([r for r in musr.roles if r.id in config.invincibleroles]) > 0:
-            return await ctx.send("_🚫 You can't kick invincible users_")
+        if(len([r for r in musr.roles if r.id in config.invincibleroles]) > 0):
+            await ctx.send("_🚫 You can't kick invincible users_")
+            return
 
         # Put it in the database
         db.AddInfraction(musr.id, Measure.KICK, reason, ctx.author.id)
