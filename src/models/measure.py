@@ -1,5 +1,5 @@
-import enum
 from enum import IntEnum
+
 
 class Measure(IntEnum):
     """Measure enum (inherited from IntEnum)

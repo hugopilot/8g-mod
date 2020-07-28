@@ -110,6 +110,9 @@ __pypackages__/
 .vs/
 .vscode/
 
+# PyCharm
+.idea/
+
 # Celery stuff
 celerybeat-schedule
 celerybeat.pid
@@ -143,6 +146,5 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
-/src/config.py
 /data/data.db
 /data/main.db-journal
