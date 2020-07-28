@@ -272,6 +272,8 @@ async def purge(ctx, amount: int = 50):
 @bot.command()
 async def whois(ctx, musr: typing.Union[discord.Member, str] = None):
     # Embed
+    if(musr == None):
+        musr = ctx.author
     if isinstance(musr, discord.Member):
         embed = discord.Embed(title="WHOIS", description=f"<@{musr.id}>", color=0x469eff)
         embed.set_author(name="Pluto's Shitty Mod Bot")
