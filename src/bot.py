@@ -28,6 +28,10 @@ bot.remove_command('help')
 bot.recentrmv = []
 
 
+# Is owner check predicate
+
+
+
 # This cog runs every minute. Unmuting members, updating recentban, etc
 class MinuteUpdate(commands.Cog):
 
@@ -93,7 +97,7 @@ def in_dm(ctx):
 
 # This decorator adds the command to the command list
 @bot.command()
-@commands.has_any_role(*elevatedperms.elevated)
+@commands.check_any(commands.has_any_role(*config.elevated_roles), commands.is_owner())
 # The function name is the name of the command, unless specified.  
 async def ban(ctx, musr: typing.Union[discord.Member, str] = None, *, reason: str = "No reason supplied; Pluto Mod Bot"):
     # Check if the musr object was properly parsed as a User object
@@ -127,7 +131,7 @@ async def ban(ctx, musr: typing.Union[discord.Member, str] = None, *, reason: st
 
 
 @bot.command()
-@commands.has_any_role(*elevatedperms.elevated)
+@commands.check_any(commands.has_any_role(*config.elevated_roles), commands.is_owner())
 async def kick(ctx, musr: typing.Union[discord.Member, str] = None, *, reason: str = None):
     # Check if the musr object was properly parsed as a User object
     if isinstance(musr, discord.Member):
@@ -162,7 +166,7 @@ async def kick(ctx, musr: typing.Union[discord.Member, str] = None, *, reason: s
 
 
 @bot.command()
-@commands.has_any_role(*elevatedperms.elevated)
+@commands.check_any(commands.has_any_role(*config.elevated_roles), commands.is_owner())
 async def mute(ctx, musr: typing.Union[discord.Member, str] = None, duration: str = "30m", *, reason: str = "No reason supplied"):
     # Check if the musr object was properly parsed as a User object
     if isinstance(musr, discord.Member):
@@ -207,7 +211,7 @@ async def mute(ctx, musr: typing.Union[discord.Member, str] = None, duration: st
 
 
 @bot.command()
-@commands.has_any_role(*elevatedperms.elevated)
+@commands.check_any(commands.has_any_role(*config.elevated_roles), commands.is_owner())
 async def unmute(ctx, musr: typing.Union[discord.Member, str]):
     # Check if the musr object was properly parsed as a User object
     if isinstance(musr, discord.Member):
@@ -229,7 +233,7 @@ async def unmute(ctx, musr: typing.Union[discord.Member, str]):
 
 
 @bot.command()
-@commands.has_any_role(*elevatedperms.elevated)
+@commands.check_any(commands.has_any_role(*config.elevated_roles), commands.is_owner())
 async def warn(ctx, musr: typing.Union[discord.Member, str] = None, *, reason: str = None):
     # Check if reason is None
     if reason is None:
@@ -258,7 +262,7 @@ async def warn(ctx, musr: typing.Union[discord.Member, str] = None, *, reason: s
 
 
 @bot.command()
-@commands.has_any_role(*elevatedperms.elevated)
+@commands.check_any(commands.has_any_role(*config.elevated_roles), commands.is_owner())
 async def purge(ctx, amount: int = 50):
     # this is a built in command from the library
     await ctx.channel.purge(limit=amount)
@@ -293,7 +297,7 @@ async def whois(ctx, musr: typing.Union[discord.Member, str] = None):
     # Check if the author has elevated permissions
     getter = functools.partial(discord.utils.get, ctx.author.roles)
     if any(getter(id=item) is not None if isinstance(item, int) else getter(name=item) is not None for item in
-           elevatedperms.elevated):
+           config.elevated_roles):
 
         # Get all infractions and convert it into a markdown format
         if isinstance(musr, str):
@@ -340,7 +344,7 @@ async def on_member_ban(guild, user):
 
 
 @bot.command()
-@commands.has_any_role(*elevatedperms.elevated)
+@commands.check_any(commands.has_any_role(*config.elevated_roles), commands.is_owner())
 async def infraction(ctx, id: str, *, cmd: str = None):
     # Get infraction info from the database
     res = db.GetInfraction(id)
@@ -490,7 +494,7 @@ async def on_message_edit(before, after):
 @bot.event
 async def on_command_error(context, exception):
     # Skip 'command not found errors'
-    if isinstance(exception, commands.errors.CommandNotFound) or isinstance(exception, commands.errors.BadArgument):
+    if isinstance(exception, commands.errors.CommandNotFound) or isinstance(exception, commands.errors.BadArgument) or isinstance(exception, commands.MissingAnyRole):
         return
     # Handling Forbidden and NotFound errors
     if isinstance(exception.original, discord.errors.Forbidden):
