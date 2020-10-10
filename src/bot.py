@@ -3,7 +3,7 @@ import datetime
 import functools
 import time
 import traceback
-# System libraies imports
+# System libraries imports
 import typing
 
 # Source imports
@@ -28,8 +28,8 @@ bot.remove_command('help')
 bot.recentrmv = []
 
 
-# Is owner check predicate
-
+# Set intents
+intents = discord.Intents(messages=True, guilds=True, members=True, bans=True)
 
 
 # This cog runs every minute. Unmuting members, updating recentban, etc
@@ -545,5 +545,5 @@ async def shutdown(ctx):
         await ctx.send("✅ Shutting down")
         await bot.logout()
 
-
-bot.run(config.token)
+# RUN ITTT
+bot.run(config.token, intents=intents)
