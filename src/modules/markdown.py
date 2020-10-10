@@ -5,20 +5,21 @@ import datetime
 import discord
 import config
 
-def infr_data_to_md(sqlres:list):
+
+def infr_data_to_md(sqlres: list):
     """Generates a markdown table from infraction data
         
         Parameters:
         sqlres: SQL result
     """
-    
+
     # Initalize an empty string
     md = ""
 
     # Check if there are any infractions
-    if(len(sqlres) < 1):
+    if len(sqlres) < 1:
         md = "No infractions"
-        return md 
+        return md
 
     for inf in sqlres:
         md = f"""{md}
@@ -26,7 +27,9 @@ def infr_data_to_md(sqlres:list):
         """
     return md
 
-def alt_string_find(bot, alts:tuple):
+
+
+def alt_string_find(bot, alts: tuple):
     y = []
     for alt in alts:
         try:
@@ -34,13 +37,16 @@ def alt_string_find(bot, alts:tuple):
         except ValueError:
             continue
         u = discord.utils.find(lambda u: u.id == id, bot.get_guild(config.guild).members)
-        if(u == None):
+
+        if u is None:
             y.append(id)
         else:
             y.append(u)
     return tuple(y)
-        
-def alt_data_to_md(bot, sqlres:namedtuple):
+
+
+
+def alt_data_to_md(bot, sqlres: namedtuple):
     """Generates markdown for alt accounts
     Required parameters: 
     - bot:discord.Client = Bot used for ID to member conversion
@@ -52,11 +58,12 @@ def alt_data_to_md(bot, sqlres:namedtuple):
 
     md = ""
 
-    if(sqlres == None):
+
+    if sqlres is None:
         md = "No alt accounts linked"
 
     else:
-        if(sqlres.mainflag):
+        if sqlres.mainflag:
             md = f"Main account is {sqlres.id}"
         else:
             acc = alt_string_find(bot, sqlres.id)
@@ -67,7 +74,8 @@ def alt_data_to_md(bot, sqlres:namedtuple):
 
 timeletters = ('s', 'm', 'h', 'd')
 
-def add_time_from_str(string:str = "", btime:int = -1, subtract = False):
+
+def add_time_from_str(string: str = "", btime: int = -1, subtract=False):
     """Adds a duration to an epoch
     
         Parameters:
@@ -87,17 +95,16 @@ def add_time_from_str(string:str = "", btime:int = -1, subtract = False):
         Example: 1 day = 1d. 15 minutes = 15m
     """
     # No begin time supplied or parsed -1: Set current time
-    if(btime == -1):
+    if btime == -1:
         btime = int(time.time())
 
     global timeletters
     # check if the letters are present
-    if(string != "" and any(letter in string for letter in timeletters)):
-        newtime = btime
+    if string != "" and any(letter in string for letter in timeletters):
         letterindex = [-1]
         for l in timeletters:
             ind = string.find(l)
-            if(ind > -1):
+            if ind > -1:
                 letterindex.append(ind)
 
         # Sort the index
@@ -108,19 +115,19 @@ def add_time_from_str(string:str = "", btime:int = -1, subtract = False):
         # For every index found...
         for i in range(0, len(letterindex)):
 
-            try:   
+            try:
                 # parse duration and type
-                tme = int(string[letterindex[i]+1:letterindex[i+1]])
-                lme = string[letterindex[i+1]:letterindex[i+1]+1]
+                tme = int(string[letterindex[i] + 1:letterindex[i + 1]])
+                lme = string[letterindex[i + 1]:letterindex[i + 1] + 1]
 
                 # Add the result to ttime
-                if(lme == 's'):
+                if lme == 's':
                     ttime += tme
-                elif(lme == 'm'):
+                elif lme == 'm':
                     ttime += (tme * 60)
-                elif(lme == 'h'):
+                elif lme == 'h':
                     ttime += (tme * 3600)
-                elif(lme == 'd'):
+                elif lme == 'd':
                     ttime += ttime + (tme * 86400)
             except IndexError:
                 # Has reached end
@@ -130,15 +137,14 @@ def add_time_from_str(string:str = "", btime:int = -1, subtract = False):
                 raise TypeError("Could not parse string properly!")
 
         # Return subtracted time or added time
-        if(subtract):
-            return (btime - ttime)
+        if subtract:
+            return btime - ttime
         else:
-            return (btime + ttime)
+            return btime + ttime
     else:
         raise TypeError("Incorrect formatting used!")
-        return -1
-        
-def duration_to_text(string:str):
+
+def duration_to_text(string: str):
     """Converts duration formatting to human readable text
     
     Required parameters: 
