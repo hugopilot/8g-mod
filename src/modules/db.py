@@ -23,6 +23,7 @@ def close_con(con):
     con.close()
 
 
+
 def _sql_escape_string(strr: str):
     """Escape special characters that could allow SQL injection
     Required parameters:
@@ -67,7 +68,9 @@ def _sql_get_muted():
     return False
 
 
+
 def CheckMuted(userID: int):
+
     """Check if a user is muted
     Required parameters:
     - userID = Discord User ID to check
@@ -101,6 +104,7 @@ def AddInfraction(userID: int, measuretype: measure.Measure, reason: str, author
     # Create a new GUID
     guid = str(uuid.uuid4())
 
+
     if ar is not None and ar.mainflag:
         alt = userID
         userID = ar.id
@@ -108,6 +112,7 @@ def AddInfraction(userID: int, measuretype: measure.Measure, reason: str, author
         q = f"INSERT INTO infractions (guid, userID, measure, reason, authorID, epoch, alt) VALUES('{guid}', {userID}, {int(measuretype)}, '{usre}', {author}, {int(time.time())}, {alt});"
     else:
         q = f"INSERT INTO infractions (guid, userID, measure, reason, authorID, epoch) VALUES('{guid}', {userID}, {int(measuretype)}, '{usre}', {author}, {int(time.time())});"
+
 
     # Connect to database
     c = connect()
@@ -203,6 +208,7 @@ def SetMuteMember(userID: int, mutelift: int):
         close_con(c)
 
 
+
 def RemoveMuteMember(userID: int):
     """Unmutes a member in the database
     
@@ -222,7 +228,9 @@ def RemoveMuteMember(userID: int):
     close_con(c)
 
 
+
 def DeleteInfraction(guid: str):
+
     """Deletes an infraction from the database
 
     Required parameters:
@@ -240,7 +248,9 @@ def DeleteInfraction(guid: str):
     close_con(c)
 
 
+
 def LinkAlt(mainuser: int, altuser: int):
+
     # Connect to database
     c = connect()
     cu = c.cursor();
@@ -249,6 +259,7 @@ def LinkAlt(mainuser: int, altuser: int):
     q = f"SELECT alts FROM users WHERE id = {mainuser}"
     cu.execute(q)
     r = cu.fetchall()
+
 
     if len(r) > 0:
         print(r)
@@ -297,6 +308,7 @@ def GetAlts(user: int):
     r = cu.fetchone()
     print('PASSED\n\n')
     # The first search didn't find anything
+
     if r is None or r[0] is None or len(r) < 1:
         q = "SELECT id FROM users WHERE alts LIKE ?"
         cu.execute(q, [f"%{user}%"])
@@ -304,10 +316,15 @@ def GetAlts(user: int):
 
         if r is None or len(r) < 1:
             return None
-
         return result(int(r[0]), True)
     print(r)
     ids = r[0].split(';')
     print(ids)
     ids.remove('')
+    close_con(c)
     return result((int(res) for res in ids), False)
+
+
+    
+    
+

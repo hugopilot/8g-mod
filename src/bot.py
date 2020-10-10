@@ -79,7 +79,9 @@ bot.add_cog(spam.AntiSpam(bot))
 
 
 # Global functions
+
 def in_dm(ctx):
+
     """Checks if a message was sent in DMs
     
     Required parameters:
@@ -109,7 +111,6 @@ async def ban(ctx, musr: typing.Union[discord.Member, str] = None, *, reason: st
         # Fail if user is invincible
         if len([r for r in musr.roles if r.id in config.invincibleroles]) > 0:
             return await ctx.send("_🚫 You can't ban invincible users_")
-
         # Put it in the database
         db.AddInfraction(musr.id, Measure.BAN, reason, ctx.author.id)
 
@@ -128,6 +129,7 @@ async def ban(ctx, musr: typing.Union[discord.Member, str] = None, *, reason: st
         await ctx.send(f"✅ Banned {musr} | {reason}")
     else:
         await ctx.send("🚫 Couldn't parse user properly")
+
 
 
 @bot.command()
@@ -164,7 +166,6 @@ async def kick(ctx, musr: typing.Union[discord.Member, str] = None, *, reason: s
     else:
         await ctx.send("🚫 Couldn't parse user properly")
 
-
 @bot.command()
 @commands.check_any(commands.has_any_role(*config.elevated_roles), commands.is_owner())
 async def mute(ctx, musr: typing.Union[discord.Member, str] = None, duration: str = "30m", *, reason: str = "No reason supplied"):
@@ -172,6 +173,13 @@ async def mute(ctx, musr: typing.Union[discord.Member, str] = None, duration: st
     if isinstance(musr, discord.Member):
         # ignore if self
         if ctx.author == musr:
+            return
+        
+        alts = db.GetAlts(musr.id)
+        
+        # Fail if user is invincible:
+        if(len([r for r in musr.roles if r.id in config.invincibleroles]) > 0):
+            await ctx.send("_🚫 You can't mute invincible users_")
             return
 
         alts = db.GetAlts(musr.id)
@@ -199,6 +207,7 @@ async def mute(ctx, musr: typing.Union[discord.Member, str] = None, duration: st
         # Assign the muted role
         await musr.add_roles(mr, reason=reason)
 
+        
         await musr.send(f"You were muted in {ctx.guild} for {markdown.duration_to_text(duration)} • {reason}")
 
         # Log it
@@ -208,7 +217,6 @@ async def mute(ctx, musr: typing.Union[discord.Member, str] = None, duration: st
         await ctx.send(f"✅ {musr} was muted for {markdown.duration_to_text(duration)} | {reason}")
     else:
         await ctx.send("🚫 Couldn't parse user properly")
-
 
 @bot.command()
 @commands.check_any(commands.has_any_role(*config.elevated_roles), commands.is_owner())
@@ -260,7 +268,6 @@ async def warn(ctx, musr: typing.Union[discord.Member, str] = None, *, reason: s
     else:
         await ctx.send("🚫 Couldn't parse user properly")
 
-
 @bot.command()
 @commands.check_any(commands.has_any_role(*config.elevated_roles), commands.is_owner())
 async def purge(ctx, amount: int = 50):
@@ -296,6 +303,7 @@ async def whois(ctx, musr: typing.Union[discord.Member, str] = None):
 
     # Check if the author has elevated permissions
     getter = functools.partial(discord.utils.get, ctx.author.roles)
+
     if any(getter(id=item) is not None if isinstance(item, int) else getter(name=item) is not None for item in
            config.elevated_roles):
 
@@ -339,6 +347,7 @@ async def on_member_ban(guild, user):
 
     # Put it in the database
     db.AddInfraction(user.id, Measure.BAN, reason, 0)
+
 
     await log.log(bot, f"{user} was banned with reason: {reason}", to_channel=True, footertxt=f"User ID: {user.id}", color=COLOR.ATTENTION_BAD.value)
 
@@ -450,7 +459,6 @@ async def on_member_update(before, after):
     
         **After**:
         {after.nick}""", to_channel=True, footertxt=f"Message ID: {after.id}; Created at: {before.created_at}", color=COLOR.INFO.value)
-
 
 # This event is risen when a member left the server (this can be the cause of kicking too!)
 @bot.event

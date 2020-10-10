@@ -7,6 +7,7 @@ async def check_mutes():
     # Get all muted users from the database
     r = db._sql_get_muted()
 
+
     # Define two lists: users and erusr. Difference being that if internal errors occured the user will be put in
     # erusr and automatically unmuted
     users = []
@@ -19,6 +20,7 @@ async def check_mutes():
     for case in r:
         try:
             # If the current time is more than the expiry time, unmute the user
+
             if int(case[2]) < ctime:
                 users.append(int(case[0]))
 

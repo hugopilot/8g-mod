@@ -1,6 +1,7 @@
 from models import measure
 from collections import namedtuple
 import time
+import datetime
 import discord
 import config
 
@@ -27,6 +28,7 @@ def infr_data_to_md(sqlres: list):
     return md
 
 
+
 def alt_string_find(bot, alts: tuple):
     y = []
     for alt in alts:
@@ -35,11 +37,13 @@ def alt_string_find(bot, alts: tuple):
         except ValueError:
             continue
         u = discord.utils.find(lambda u: u.id == id, bot.get_guild(config.guild).members)
+
         if u is None:
             y.append(id)
         else:
             y.append(u)
     return tuple(y)
+
 
 
 def alt_data_to_md(bot, sqlres: namedtuple):
@@ -54,6 +58,7 @@ def alt_data_to_md(bot, sqlres: namedtuple):
 
     md = ""
 
+
     if sqlres is None:
         md = "No alt accounts linked"
 
@@ -66,7 +71,6 @@ def alt_data_to_md(bot, sqlres: namedtuple):
                 md = f"""{md}
                 - {a}"""
     return md
-
 
 timeletters = ('s', 'm', 'h', 'd')
 
@@ -139,7 +143,6 @@ def add_time_from_str(string: str = "", btime: int = -1, subtract=False):
             return btime + ttime
     else:
         raise TypeError("Incorrect formatting used!")
-
 
 def duration_to_text(string: str):
     """Converts duration formatting to human readable text

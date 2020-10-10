@@ -54,7 +54,6 @@ class AntiSpam(Cog):
         # Ignore invincible dudes
         if len([r for r in message.author.roles if r.id in config.invincibleroles]) > 0:
             return
-
         # Get the message history
         earliest_relevant_at = datetime.datetime.utcnow() - datetime.timedelta(seconds=10)
         relevant_messages = [msg async for msg in message.channel.history(after=earliest_relevant_at, oldest_first=False) if not msg.author.bot]
@@ -74,7 +73,9 @@ class AntiSpam(Cog):
         rate = datetime.datetime.utcnow() - datetime.timedelta(seconds=config.spamtolerance)
         messages_to_check = [msg for msg in relevant_messages if msg.created_at > rate]
         md = [msg for msg in messages_to_check if Counter(msg.author for msg in messages_to_check)[msg.author] > config.spamthreshold]
+
         if len(md) > 0:
+
             # There is spam there, create a dict with messages that have the same content but somehow got through first antispam round and add it to the deletion queue
             scm = [msg for msg in messages_to_check if Counter(msg.content for msg in messages_to_check)[msg.content] > 1 and Counter(msg.author for msg in messages_to_check)[msg.author] > 1]
             if len(scm) > 0:
