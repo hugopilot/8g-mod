@@ -28,7 +28,8 @@ bot.remove_command('help')
 bot.recentrmv = []
 
 
-# Is owner check predicate
+# Set intents
+intents = discord.Intents(messages=True, guilds=True, members=True, bans=True)
 
 
 
@@ -545,5 +546,5 @@ async def shutdown(ctx):
         await ctx.send("✅ Shutting down")
         await bot.logout()
 
-
-bot.run(config.token)
+# RUN ITT
+bot.run(config.token, intents=intents)
