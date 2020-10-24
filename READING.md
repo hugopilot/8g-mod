@@ -30,7 +30,7 @@ if('Hi' in msg):
 Code can 'jump' to other sections. Example:
 ```py
 def check_if_hi(message):
-  if('Hi' in msg):
+  if('Hi' in message):
     return 'Hey!'
   return 'Hey?'
   
@@ -38,7 +38,7 @@ msg = "Hi!"
 
 result = check_if_hi(msg)
 print(result)
-``
+```
 The code here actually starts at `msg = "Hi!` and jumps to `def check_if_hi(message)` once the program reaches `result = check_if_hi(msg)`. 
 After execution of the `check_if_hi(message)` function the progam put the returning value in `result`. Finally the progam prints `result` with `print(result)`
   
