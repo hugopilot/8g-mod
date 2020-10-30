@@ -14,6 +14,7 @@ from models import elevatedperms
 from models import errors
 from models.colors import COLOR
 from models.measure import Measure
+from models.Infraction import Infraction
 from modules import db
 from modules import log
 from modules import markdown
@@ -67,7 +68,8 @@ class MinuteUpdate(commands.Cog):
                 if u is None:
                     await log.log(self.bot, "Cannot lift mute, member probably left", to_channel=True, footertxt=f"User ID: {case}", color=COLOR.WARN.value)
                 else:
-                    u.remove_roles(mutedr, reason='Automatically lifted (NULL ERROR) by bot')
+                    u.remove_roles(
+                        mutedr, reason='Automatically lifted (NULL ERROR) by bot')
                     await log.log(self.bot, f"Mute on {u} lifted (NULL ERROR).", to_channel=True, footertxt=f"User ID: {case}", color=COLOR.ATTENTION_WARN.value)
 
         except Exception:
@@ -81,9 +83,8 @@ bot.add_cog(spam.AntiSpam(bot))
 # Global functions
 
 def in_dm(ctx):
-
     """Checks if a message was sent in DMs
-    
+
     Required parameters:
     - ctx: discord.Context object
 
@@ -95,12 +96,31 @@ def in_dm(ctx):
     return False
 
 
+async def report_infraction(bot: discord.ext.commands.Bot, infraction: Infraction):
+    """Logs the infraction to the infraction report channel
+
+    Required parameters:
+    - bot: discord.ext.commands.Bot object
+    - infraction: models.Infraction.Infraction object
+
+    Returns:
+    None
+    """
+    # Get the channel the report should be send to
+    ch = bot.get_guild(config.guild).get_channel(config.infrepch)
+
+    # Send the infraction
+    await ch.send(embed=str(infraction))
+    del ch
+
 # region mod commands
 
 # This decorator adds the command to the command list
+
+
 @bot.command()
 @commands.check_any(commands.has_any_role(*config.elevated_roles), commands.is_owner())
-# The function name is the name of the command, unless specified.  
+# The function name is the name of the command, unless specified.
 async def ban(ctx, musr: typing.Union[discord.Member, str] = None, *, reason: str = "No reason supplied; Pluto Mod Bot"):
     # Check if the musr object was properly parsed as a User object
     if isinstance(musr, discord.Member):
@@ -113,6 +133,8 @@ async def ban(ctx, musr: typing.Union[discord.Member, str] = None, *, reason: st
             return await ctx.send("_🚫 You can't ban invincible users_")
         # Put it in the database
         db.AddInfraction(musr.id, Measure.BAN, reason, ctx.author.id)
+        report_infraction(bot, Infraction(
+            musr.id, Measure.BAN, reason, ctx.author.id))
 
         await musr.send(f"You were banned from {ctx.guild} • {reason}")
 
@@ -129,7 +151,6 @@ async def ban(ctx, musr: typing.Union[discord.Member, str] = None, *, reason: st
         await ctx.send(f"✅ Banned {musr} | {reason}")
     else:
         await ctx.send("🚫 Couldn't parse user properly")
-
 
 
 @bot.command()
@@ -149,6 +170,8 @@ async def kick(ctx, musr: typing.Union[discord.Member, str] = None, *, reason: s
 
         # Put it in the database
         db.AddInfraction(musr.id, Measure.KICK, reason, ctx.author.id)
+        report_infraction(bot, Infraction(
+            musr.id, Measure.KICK, reason, ctx.author.id))
 
         # Add it to the recentrmv list
         bot.recentrmv.append(musr.id)
@@ -166,6 +189,7 @@ async def kick(ctx, musr: typing.Union[discord.Member, str] = None, *, reason: s
     else:
         await ctx.send("🚫 Couldn't parse user properly")
 
+
 @bot.command()
 @commands.check_any(commands.has_any_role(*config.elevated_roles), commands.is_owner())
 async def mute(ctx, musr: typing.Union[discord.Member, str] = None, duration: str = "30m", *, reason: str = "No reason supplied"):
@@ -174,9 +198,9 @@ async def mute(ctx, musr: typing.Union[discord.Member, str] = None, duration: st
         # ignore if self
         if ctx.author == musr:
             return
-        
+
         alts = db.GetAlts(musr.id)
-        
+
         # Fail if user is invincible:
         if(len([r for r in musr.roles if r.id in config.invincibleroles]) > 0):
             await ctx.send("_🚫 You can't mute invincible users_")
@@ -190,13 +214,16 @@ async def mute(ctx, musr: typing.Union[discord.Member, str] = None, duration: st
 
         # Put it in the database
         db.AddInfraction(musr.id, Measure.MUTE, reason, ctx.author.id)
+        report_infraction(bot, Infraction(
+            musr.id, Measure.MUTE, reason, ctx.author.id))
 
         # Try to get the role
         mr = ctx.guild.get_role(config.mutedrole)
 
         # Bot couldn't find the correct role
         if mr is None:
-            raise errors.RoleNotFoundError("Muted role not found!", "Update ID in config file")
+            raise errors.RoleNotFoundError(
+                "Muted role not found!", "Update ID in config file")
 
         try:
             ti = markdown.add_time_from_str(duration)
@@ -207,7 +234,6 @@ async def mute(ctx, musr: typing.Union[discord.Member, str] = None, duration: st
         # Assign the muted role
         await musr.add_roles(mr, reason=reason)
 
-        
         await musr.send(f"You were muted in {ctx.guild} for {markdown.duration_to_text(duration)} • {reason}")
 
         # Log it
@@ -217,6 +243,7 @@ async def mute(ctx, musr: typing.Union[discord.Member, str] = None, duration: st
         await ctx.send(f"✅ {musr} was muted for {markdown.duration_to_text(duration)} | {reason}")
     else:
         await ctx.send("🚫 Couldn't parse user properly")
+
 
 @bot.command()
 @commands.check_any(commands.has_any_role(*config.elevated_roles), commands.is_owner())
@@ -259,6 +286,8 @@ async def warn(ctx, musr: typing.Union[discord.Member, str] = None, *, reason: s
 
         # Put it in the database
         db.AddInfraction(musr.id, Measure.WARN, reason, ctx.author.id)
+        report_infraction(bot, Infraction(
+            musr.id, Measure.WARN, reason, ctx.author.id))
 
         # Log it
         await log.log(bot, f"{musr.mention} was warned by {ctx.author.mention} with reason: {reason}", to_channel=True, footertxt=f"User ID: {musr.id}", color=COLOR.ATTENTION_WARN.value)
@@ -267,6 +296,7 @@ async def warn(ctx, musr: typing.Union[discord.Member, str] = None, *, reason: s
         await ctx.send(f"✅ {musr} was warned | {reason}")
     else:
         await ctx.send("🚫 Couldn't parse user properly")
+
 
 @bot.command()
 @commands.check_any(commands.has_any_role(*config.elevated_roles), commands.is_owner())
@@ -287,18 +317,22 @@ async def whois(ctx, musr: typing.Union[discord.Member, str] = None):
     if(musr == None):
         musr = ctx.author
     if isinstance(musr, discord.Member):
-        embed = discord.Embed(title="WHOIS", description=f"<@{musr.id}>", color=0x469eff)
+        embed = discord.Embed(
+            title="WHOIS", description=f"<@{musr.id}>", color=0x469eff)
         embed.set_author(name="Pluto's Shitty Mod Bot")
         embed.set_thumbnail(url=f"{str(musr.avatar_url)}")
         embed.add_field(name="Username", value=f"{musr}", inline=True)
-        embed.add_field(name="Registered", value=f"{str(musr.created_at)}", inline=True)
+        embed.add_field(name="Registered",
+                        value=f"{str(musr.created_at)}", inline=True)
         if not in_dm(ctx):
             embed.add_field(name="Nickname", value=f"{musr.nick}", inline=True)
-            embed.add_field(name="Joined", value=f"{str(musr.joined_at)}", inline=True)
+            embed.add_field(
+                name="Joined", value=f"{str(musr.joined_at)}", inline=True)
 
         embed.set_footer(text=f"User ID: {musr.id}")
     else:
-        embed = discord.Embed(title="WHOIS", description=f"<@{musr}>", color=0x469eff)
+        embed = discord.Embed(
+            title="WHOIS", description=f"<@{musr}>", color=0x469eff)
         embed.set_author(name="Pluto's Shitty Mod Bot")
 
     # Check if the author has elevated permissions
@@ -309,7 +343,7 @@ async def whois(ctx, musr: typing.Union[discord.Member, str] = None):
 
         # Get all infractions and convert it into a markdown format
         if isinstance(musr, str):
-            # if the argument provided was not automatically converted to discord.Member, try to parse it to an id (int) 
+            # if the argument provided was not automatically converted to discord.Member, try to parse it to an id (int)
             try:
                 md1 = markdown.infr_data_to_md(db.GetAllInfractions(int(musr)))
                 md2 = markdown.alt_data_to_md(bot, db.GetAlts(int(musr)))
@@ -348,7 +382,6 @@ async def on_member_ban(guild, user):
     # Put it in the database
     db.AddInfraction(user.id, Measure.BAN, reason, 0)
 
-
     await log.log(bot, f"{user} was banned with reason: {reason}", to_channel=True, footertxt=f"User ID: {user.id}", color=COLOR.ATTENTION_BAD.value)
 
 
@@ -362,7 +395,7 @@ async def infraction(ctx, id: str, *, cmd: str = None):
     if len(res) < 1:
         return await ctx.send("🚫 Didn't find any infractions")
 
-    # if delete argument was supplied with the command 
+    # if delete argument was supplied with the command
     if cmd == 'delete':
         # If just one result is found, delete it
         if len(res) == 1:
@@ -374,7 +407,8 @@ async def infraction(ctx, id: str, *, cmd: str = None):
             return await log.log(bot, f"{ctx.author.mention} deleted infraction {res[0][0]}", to_channel=True, footertxt=f'User ID: {ctx.author.id}', color=COLOR.ATTENTION_INFO.value)
 
     # Create an embed, fill it with data and send it!
-    embed = discord.Embed(title="Infractions", description=f"Found {len(res)} result(s). Showing first", color=0x469EFF)
+    embed = discord.Embed(
+        title="Infractions", description=f"Found {len(res)} result(s). Showing first", color=0x469EFF)
     embed.set_author(name="Pluto's Shitty Mod Bot")
     case = res[0]
 
@@ -383,14 +417,19 @@ async def infraction(ctx, id: str, *, cmd: str = None):
     embed.add_field(name="User", value=f"<@{int(case[1])}>", inline=True)
     embed.add_field(name="Type", value=f"{str(Measure(case[2]))}", inline=True)
     embed.add_field(name="Reason", value=f"{case[3]}", inline=True)
-    embed.add_field(name="Recorded by", value=f"<@{int(case[4])}>", inline=True)
-    embed.add_field(name="Timestamp", value=f"{time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(int(case[5])))}", inline=True)
+    embed.add_field(name="Recorded by",
+                    value=f"<@{int(case[4])}>", inline=True)
+    embed.add_field(
+        name="Timestamp", value=f"{time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(int(case[5])))}", inline=True)
     if case[6] is not None:
-        u = discord.utils.find(lambda u: u.id == int(case[6]), bot.get_guild(config.guild).members)
+        u = discord.utils.find(lambda u: u.id == int(
+            case[6]), bot.get_guild(config.guild).members)
         if u is not None:
-            embed.add_field(name="Alt account", value=f"{u.mention}", inline=True)
+            embed.add_field(name="Alt account",
+                            value=f"{u.mention}", inline=True)
         else:
-            embed.add_field(name="Alt account", value=f"{case[6]}", inline=True)
+            embed.add_field(name="Alt account",
+                            value=f"{case[6]}", inline=True)
 
     await ctx.send(embed=embed)
     del embed
@@ -428,7 +467,8 @@ async def on_member_join(member):
 
         # Bot couldn't find the correct role
         if mr is None:
-            raise errors.RoleNotFoundError("Muted role not found!", "Update ID in config file")
+            raise errors.RoleNotFoundError(
+                "Muted role not found!", "Update ID in config file")
         else:
             # Assign the muted role
             await member.add_roles(mr, reason="Auto-reassigned by Pluto's Shitty Mod Bot")
@@ -439,7 +479,8 @@ async def on_member_join(member):
         # Bot couldn't find the correct role
         rq = member.guild.get_role(r)
         if rq is None:
-            raise errors.RoleNotFoundError("{r} could not be found!", "Update ID in config file")
+            raise errors.RoleNotFoundError(
+                "{r} could not be found!", "Update ID in config file")
         await member.add_roles(rq, reason="Auto-assigned by Pluto's Shitty Mod Bot")
         await log.log(bot, f"Auto assigned `{rq}` to {member}", to_channel=True, footertxt=f"User ID: {member.id}", color=COLOR.INFO.value)
 
@@ -461,6 +502,8 @@ async def on_member_update(before, after):
         {after.nick}""", to_channel=True, footertxt=f"Message ID: {after.id}; Created at: {before.created_at}", color=COLOR.INFO.value)
 
 # This event is risen when a member left the server (this can be the cause of kicking too!)
+
+
 @bot.event
 async def on_member_remove(member):
     await log.log(bot, f"Member {member} left", to_channel=True, footertxt=f"User ID: {member.id}", color=COLOR.ATTENTION_BAD.value)
@@ -473,7 +516,8 @@ async def on_message_delete(message):
         return
     if spam.deleting:
         return
-    al = message.guild.audit_logs(limit=3, action=discord.AuditLogAction.message_delete, after=datetime.datetime.utcnow() - datetime.timedelta(seconds=10))
+    al = message.guild.audit_logs(limit=3, action=discord.AuditLogAction.message_delete,
+                                  after=datetime.datetime.utcnow() - datetime.timedelta(seconds=10))
     re = await al.get(target=message.author)
     if re is None or re.user is None:
         await log.log(bot, f"**Message from {message.author.mention} deleted in <#{message.channel.id}>**:\n{message.content}", to_channel=True, to_log=False, footertxt=f"Message ID: {message.id}; Created at: {message.created_at}", color=COLOR.BAD.value, expiry=config.sensitive_expiry)
@@ -506,7 +550,7 @@ async def on_command_error(context, exception):
         return
     # Handling Forbidden and NotFound errors
     if isinstance(exception.original, discord.errors.Forbidden):
-        # Try to send 
+        # Try to send
         try:
             return await context.send("[DISCORD ERROR] HTTP 403")
         except Exception:
@@ -520,14 +564,16 @@ async def on_command_error(context, exception):
     if isinstance(exception.original, discord.ext.commands.UnexpectedQuoteError):
         await context.send("_Unexpected closing of the string. Error has been logged_")
 
-    ex = traceback.format_exception(type(exception), exception, exception.__traceback__)
+    ex = traceback.format_exception(
+        type(exception), exception, exception.__traceback__)
     m = """[ERR] """
     for line in ex:
         m = """{}{}""".format(m, line)
     if context.guild is None:
         m = f"{m}\nIN DM, thanks to {context.author} ({context.author.id})\n\n"
     else:
-        m = f"{m}\nIn {context.guild} ({context.guild.id}), thanks to {context.author} ({context.author.id})\n\n".format(m, context.guild, context.guild.id, context.author, context.author.id)
+        m = f"{m}\nIn {context.guild} ({context.guild.id}), thanks to {context.author} ({context.author.id})\n\n".format(
+            m, context.guild, context.guild.id, context.author, context.author.id)
     log.errlog(m)
 
     await context.send("Ohoh, something went wrong. Error has been logged")

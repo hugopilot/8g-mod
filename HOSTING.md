@@ -35,6 +35,7 @@ errloc = '../data/logs/err.log'
 # All ID's should be int! 
 guild = # Put your guild/server ID here
 logch = # Put your log channel ID here (this is the channel where all logs will be dumped)
+infrepch = # Put your infraction report channel ID here (this is the channel where all infraction reports will be send)
 
 # Server roles
 mutedrole = # Put the muted role ID here. This role will be assigned when the mute command is used
