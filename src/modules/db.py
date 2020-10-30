@@ -94,6 +94,9 @@ def AddInfraction(userID: int, measuretype: measure.Measure, reason: str, author
        - measuretype:measure.Measure = Type of measure enum (see models/measure.py)
        - reason:str = The reason why the infraction should be recorded
        - author:int = Discord ID of the user that called the command
+
+       Returns:
+       guid: The GUID of the generated infraction
     """
     # Check if alts are linked
     ar = GetAlts(userID)
@@ -116,7 +119,7 @@ def AddInfraction(userID: int, measuretype: measure.Measure, reason: str, author
 
     # Connect to database
     c = connect()
-    cu = c.cursor();
+    cu = c.cursor()
 
     # Execute the SQL Query
     cu.execute(q)
@@ -124,6 +127,7 @@ def AddInfraction(userID: int, measuretype: measure.Measure, reason: str, author
 
     # Disconnect from database
     close_con(c)
+    return guid
 
 
 def GetAllInfractions(userID: int):
