@@ -1,5 +1,5 @@
 # 8 Graves's Shitty Bot
-This is the moderation bot running on Unlike Pluto's server (running on bot plutobot#7833). 
+This is the moderation bot running on 8 Graves' server (running on bot 8 Graves Bot#1202). 
 
 Features:
 - Infraction system
