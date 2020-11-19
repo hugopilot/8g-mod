@@ -1,4 +1,4 @@
-# Pluto's Shitty Bot
+# 8 Graves's Shitty Bot
 This is the moderation bot running on Unlike Pluto's server (running on bot plutobot#7833). 
 
 Features:
