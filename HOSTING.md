@@ -24,7 +24,7 @@ We do recommend installing [Git](https://git-scm.com/) as this makes updating th
 token = "Discord Bot Token here"
 version = "0.5.0" 
 prefix = '?' # Command prefix. Set a custom character if you wish
-botname = "Pluto's Shitty Mod Bot" # You can set a custom name for the bot here
+botname = "8 Graves' Shitty Mod Bot" # You can set a custom name for the bot here
 
 # File locations (I would recommend leaving these settings alone unless you know what you're doing)
 databaseloc = '../data/main.db' 
