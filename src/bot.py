@@ -20,16 +20,20 @@ from modules import markdown
 from modules import spam
 from modules import update
 
+
+# Set intents
+intents = discord.Intents(messages=True, guilds=True, members=True, bans=True)
+
+
 # Delete default help command
-bot = commands.Bot(command_prefix=config.prefix)
+bot = commands.Bot(command_prefix=config.prefix, intents=intents)
 bot.remove_command('help')
 
 # Bot vars
 bot.recentrmv = []
 
 
-# Set intents
-intents = discord.Intents(messages=True, guilds=True, members=True, bans=True)
+
 
 
 # This cog runs every minute. Unmuting members, updating recentban, etc
@@ -546,4 +550,4 @@ async def shutdown(ctx):
         await bot.logout()
 
 # RUN ITTT
-bot.run(config.token, intents=intents)
+bot.run(config.token)
