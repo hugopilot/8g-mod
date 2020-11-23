@@ -101,7 +101,7 @@ def in_dm(ctx):
 @bot.command()
 @commands.check_any(commands.has_any_role(*config.elevated_roles), commands.is_owner())
 # The function name is the name of the command, unless specified.  
-async def ban(ctx, musr: typing.Union[discord.Member, str] = None, *, reason: str = "No reason supplied; Pluto Mod Bot"):
+async def ban(ctx, musr: typing.Union[discord.Member, str] = None, *, reason: str = f"No reason supplied; {config.botname}"):
     # Check if the musr object was properly parsed as a User object
     if isinstance(musr, discord.Member):
         # ignore if self
@@ -288,7 +288,7 @@ async def whois(ctx, musr: typing.Union[discord.Member, str] = None):
         musr = ctx.author
     if isinstance(musr, discord.Member):
         embed = discord.Embed(title="WHOIS", description=f"<@{musr.id}>", color=0x469eff)
-        embed.set_author(name="Pluto's Shitty Mod Bot")
+        embed.set_author(name=f"{config.botname}")
         embed.set_thumbnail(url=f"{str(musr.avatar_url)}")
         embed.add_field(name="Username", value=f"{musr}", inline=True)
         embed.add_field(name="Registered", value=f"{str(musr.created_at)}", inline=True)
@@ -299,7 +299,7 @@ async def whois(ctx, musr: typing.Union[discord.Member, str] = None):
         embed.set_footer(text=f"User ID: {musr.id}")
     else:
         embed = discord.Embed(title="WHOIS", description=f"<@{musr}>", color=0x469eff)
-        embed.set_author(name="Pluto's Shitty Mod Bot")
+        embed.set_author(name=f"{config.botname}")
 
     # Check if the author has elevated permissions
     getter = functools.partial(discord.utils.get, ctx.author.roles)
@@ -375,7 +375,7 @@ async def infraction(ctx, id: str, *, cmd: str = None):
 
     # Create an embed, fill it with data and send it!
     embed = discord.Embed(title="Infractions", description=f"Found {len(res)} result(s). Showing first", color=0x469EFF)
-    embed.set_author(name="Pluto's Shitty Mod Bot")
+    embed.set_author(name=f"{config.botname}")
     case = res[0]
 
     embed.add_field(name="GUID", value=f"{case[0]}", inline=True)
@@ -431,7 +431,7 @@ async def on_member_join(member):
             raise errors.RoleNotFoundError("Muted role not found!", "Update ID in config file")
         else:
             # Assign the muted role
-            await member.add_roles(mr, reason="Auto-reassigned by Pluto's Shitty Mod Bot")
+            await member.add_roles(mr, reason=f"Auto-reassigned by {config.botname}")
             await log.log(bot, f"Found mute on {member}, reassigned role!", to_channel=True, footertxt=f"User ID: {member.id}", color=COLOR.BAD.value)
 
     # Assign roles defined in config.autoroles
@@ -440,7 +440,7 @@ async def on_member_join(member):
         rq = member.guild.get_role(r)
         if rq is None:
             raise errors.RoleNotFoundError("{r} could not be found!", "Update ID in config file")
-        await member.add_roles(rq, reason="Auto-assigned by Pluto's Shitty Mod Bot")
+        await member.add_roles(rq, reason=f"Auto-assigned by {config.botname}")
         await log.log(bot, f"Auto assigned `{rq}` to {member}", to_channel=True, footertxt=f"User ID: {member.id}", color=COLOR.INFO.value)
 
 
