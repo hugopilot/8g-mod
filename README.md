@@ -1,4 +1,4 @@
-# 8 Graves's Shitty Bot
+# 8 Graves' Shitty Bot
 This is the moderation bot running on 8 Graves' server (running on bot 8 Graves Bot#1202). 
 
 Features:
